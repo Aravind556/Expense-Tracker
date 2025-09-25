@@ -44,7 +44,15 @@ public class Expense {
     private User user;
 
     public enum Category {
-        FOOD, TRANSPORTATION, UTILITIES, ENTERTAINMENT, HEALTHCARE, OTHER
-    }
-    
+        FOOD("Food"), TRANSPORTATION("Transportation"), UTILITIES("Utilities"), ENTERTAINMENT("Entertainment"), HEALTHCARE("Healthcare"), OTHER("Other");
+
+        private final String displayName;
+        Category(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    } 
 }
