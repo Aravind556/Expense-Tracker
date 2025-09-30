@@ -1,14 +1,17 @@
-package com.example.Expense_Tracker.Config;
+package com.example.Expense_Tracker.Security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
-    
+
+    @Value("${jwt.secret}")
     private String secret;
-    private long expiration = 86400000; // 24 hours default
+    @Value("${jwt.expiration:86400000}")
+    private long expiration ; // 24 hours default
     
     public String getSecret() {
         return secret;
