@@ -2,14 +2,17 @@ package com.example.Expense_Tracker.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.example.Expense_Tracker.Service.UserService;
+import com.example.Expense_Tracker.Security.JwtAuthFilter;
+
 
 
 @Configuration
@@ -17,22 +20,24 @@ import com.example.Expense_Tracker.Service.UserService;
 public class Securityconfig {
 
     
-    public UserService userService;
-    public Webconfig webconfig;
+    private final Webconfig webconfig;
+    
+    private final JwtAuthFilter jwtAuthFilter;
 
-    public Securityconfig(UserService userService, Webconfig webconfig) {
-        this.userService = userService;
+    public Securityconfig(Webconfig webconfig, JwtAuthFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
         this.webconfig = webconfig;
     }
 
+    
     @Bean
-    public UserDetailsService userDetailsService(){
-        return userService;
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
+        return config.getAuthenticationManager();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider(){
-        DaoAuthenticationProvider authProvider= new DaoAuthenticationProvider(userService);
+        DaoAuthenticationProvider authProvider= new DaoAuthenticationProvider(webconfig.userDetailsService());
         authProvider.setPasswordEncoder(webconfig.passwordEncoder());
         return authProvider;
     }
@@ -44,14 +49,15 @@ public class Securityconfig {
             .authorizeHttpRequests(
                 auth -> auth
                     .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/expenses/**").authenticated()
                     .anyRequest().authenticated()
-            );
-        
-            
-        
-        
-        
+            )
+            .sessionManagement(
+                httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer
+                    .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
+            )
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); 
+
         return http.build();
 
     }
