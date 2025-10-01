@@ -1,6 +1,7 @@
 package com.example.Expense_Tracker.Model;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +25,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "expenses")
+@Builder
 public class Expense {
 
     @Id
@@ -38,6 +41,9 @@ public class Expense {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Category category;
+    
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
