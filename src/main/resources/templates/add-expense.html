@@ -104,7 +104,7 @@
                                         <input type="date" 
                                                id="createdAt" 
                                                name="createdAt" 
-                                               th:value="${expense?.createdAt != null ? #dates.format(expense.createdAt, 'yyyy-MM-dd') : #dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
+                                               th:value="${expense?.createdAt != null ? #temporals.format(expense.createdAt, 'yyyy-MM-dd') : #temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
                                                class="form-control" 
                                                required>
                                     </div>
@@ -194,7 +194,7 @@
                                         <div class="recent-desc" th:text="${recent.description}">Description</div>
                                         <div class="recent-meta">
                                             <span th:text="${recent.category}">Category</span>
-                                            <span th:text="${#dates.format(recent.createdAt, 'MMM dd')}">Date</span>
+                                            <span th:text="${#temporals.format(recent.createdAt, 'MMM dd')}">Date</span>
                                         </div>
                                     </div>
                                     <div class="recent-amount" th:text="'$' + ${#numbers.formatDecimal(recent.amount, 1, 2)}">$0.00</div>

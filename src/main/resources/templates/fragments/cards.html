@@ -31,7 +31,7 @@
                 </span>
                 <span class="expense-date">
                     <i class="fas fa-calendar"></i>
-                    <span th:text="${#dates.format(expense.createdAt, 'MMM dd, yyyy')}">Date</span>
+                    <span th:text="${#temporals.format(expense.createdAt, 'MMM dd, yyyy')}">Date</span>
                 </span>
             </div>
             
@@ -104,7 +104,7 @@
                     <div class="expense-desc" th:text="${expense.description}">Description</div>
                     <div class="expense-meta">
                         <span class="expense-category" th:text="${expense.category}">Category</span>
-                        <span class="expense-date" th:text="${#dates.format(expense.createdAt, 'MMM dd')}">Date</span>
+                        <span class="expense-date" th:text="${#temporals.format(expense.createdAt, 'MMM dd')}">Date</span>
                     </div>
                 </div>
                 <div class="expense-amount" th:text="'$' + ${#numbers.formatDecimal(expense.amount, 1, 2)}">$0.00</div>
