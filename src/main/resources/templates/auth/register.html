@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head}"></head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Join us to start tracking your expenses</p>
+            </div>
+            
+            <!-- Registration Form -->
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <!-- Username Field -->
+                <div th:replace="~{fragments/forms :: input-with-icon(
+                    id='username', 
+                    name='username', 
+                    label='Username', 
+                    type='text', 
+                    placeholder='Choose a username', 
+                    value='', 
+                    icon='user', 
+                    required=true
+                )}"></div>
+                
+                <!-- Email Field -->
+                <div th:replace="~{fragments/forms :: input-with-icon(
+                    id='email', 
+                    name='email', 
+                    label='Email Address', 
+                    type='email', 
+                    placeholder='Enter your email', 
+                    value='', 
+                    icon='envelope', 
+                    required=true
+                )}"></div>
+                
+                <!-- Password Field -->
+                <div th:replace="~{fragments/forms :: input-with-icon(
+                    id='password', 
+                    name='password', 
+                    label='Password', 
+                    type='password', 
+                    placeholder='Create a password', 
+                    value='', 
+                    icon='lock', 
+                    required=true
+                )}"></div>
+                
+                <!-- Confirm Password Field -->
+                <div th:replace="~{fragments/forms :: input-with-icon(
+                    id='confirmPassword', 
+                    name='confirmPassword', 
+                    label='Confirm Password', 
+                    type='password', 
+                    placeholder='Confirm your password', 
+                    value='', 
+                    icon='lock', 
+                    required=true
+                )}"></div>
+                
+
+                
+                <!-- Submit Button -->
+                <div th:replace="~{fragments/forms :: loading-button(text='Create Account', loadingText='Creating Account...')}"></div>
+            </form>
+            
+            <!-- Auth Footer -->
+            <div class="auth-footer">
+                <p>Already have an account? 
+                    <a href="/login" class="auth-link">Sign in here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include Form Styles -->
+    <div th:replace="~{fragments/forms :: form-styles}"></div>
+    
+    <!-- Custom Styles for Register -->
+    <style>
+        .checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            user-select: none;
+            line-height: 1.5;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--light-green);
+            cursor: pointer;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        
+        .auth-container {
+            background: linear-gradient(135deg, 
+                var(--dark-grey) 0%, 
+                var(--medium-grey) 50%, 
+                var(--dark-grey) 100%);
+            background-attachment: fixed;
+            position: relative;
+        }
+        
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234a7c59' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+        
+        .auth-card {
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 124, 89, 0.2);
+            max-width: 500px;
+        }
+        
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(45, 102, 80, 0.1) 0%, 
+                rgba(26, 77, 58, 0.1) 100%);
+            border-radius: 16px;
+            z-index: -1;
+        }
+        
+        /* Password strength indicator */
+        .password-strength {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            display: none;
+        }
+        
+        .password-strength.weak {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        
+        .password-strength.medium {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        
+        .password-strength.strong {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        
+        /* Password match indicator */
+        .password-match {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+        
+        .password-match.match {
+            color: var(--success);
+        }
+        
+        .password-match.no-match {
+            color: var(--danger);
+        }
+        
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1rem;
+            }
+            
+            .auth-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .auth-title {
+                font-size: 1.8rem;
+            }
+            
+            .checkbox-label {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/auth.js}"></script>
+    <script>
+        // Initialize register page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize AuthManager (app.js is now loaded before auth.js)
+            new AuthManager();
+            
+            // Focus on username field
+            document.getElementById('username').focus();
+            
+            // Add password strength checking
+            const passwordField = document.getElementById('password');
+            const confirmPasswordField = document.getElementById('confirmPassword');
+            
+            // Add password strength indicator
+            const strengthIndicator = document.createElement('div');
+            strengthIndicator.className = 'password-strength';
+            passwordField.parentNode.parentNode.appendChild(strengthIndicator);
+            
+            // Add password match indicator
+            const matchIndicator = document.createElement('div');
+            matchIndicator.className = 'password-match';
+            confirmPasswordField.parentNode.parentNode.appendChild(matchIndicator);
+            
+            // Password strength checker
+            passwordField.addEventListener('input', function() {
+                const password = this.value;
+                const strength = checkPasswordStrength(password);
+                
+                if (password.length > 0) {
+                    strengthIndicator.style.display = 'block';
+                    strengthIndicator.className = `password-strength ${strength.level}`;
+                    strengthIndicator.textContent = strength.message;
+                } else {
+                    strengthIndicator.style.display = 'none';
+                }
+                
+                checkPasswordMatch();
+            });
+            
+            // Password match checker
+            confirmPasswordField.addEventListener('input', checkPasswordMatch);
+            
+            function checkPasswordMatch() {
+                const password = passwordField.value;
+                const confirmPassword = confirmPasswordField.value;
+                
+                if (confirmPassword.length > 0) {
+                    matchIndicator.style.display = 'block';
+                    if (password === confirmPassword) {
+                        matchIndicator.className = 'password-match match';
+                        matchIndicator.innerHTML = '<i class="fas fa-check"></i> Passwords match';
+                    } else {
+                        matchIndicator.className = 'password-match no-match';
+                        matchIndicator.innerHTML = '<i class="fas fa-times"></i> Passwords do not match';
+                    }
+                } else {
+                    matchIndicator.style.display = 'none';
+                }
+            }
+            
+            function checkPasswordStrength(password) {
+                let score = 0;
+                let message = '';
+                
+                if (password.length >= 8) score++;
+                if (/[a-z]/.test(password)) score++;
+                if (/[A-Z]/.test(password)) score++;
+                if (/[0-9]/.test(password)) score++;
+                if (/[^A-Za-z0-9]/.test(password)) score++;
+                
+                if (score < 3) {
+                    return { level: 'weak', message: 'Password is weak. Add uppercase, numbers, and symbols.' };
+                } else if (score < 4) {
+                    return { level: 'medium', message: 'Password is medium strength. Consider adding more variety.' };
+                } else {
+                    return { level: 'strong', message: 'Password is strong!' };
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.example.Expense_Tracker.Security.JwtAuthFilter;
 
-
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -48,12 +48,50 @@ public class Securityconfig {
             .csrf(csrf-> csrf.disable())
             .authorizeHttpRequests(
                 auth -> auth
+                    // API authentication endpoints - no JWT required
                     .requestMatchers("/api/auth/**").permitAll()
+                    // Static resources and common web assets - no authentication required
+                    .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/webjars/**").permitAll()
+                    // Public pages - no authentication required
+                    .requestMatchers("/", "/login", "/register", "/error", "/access-denied").permitAll()
+                    // Protected pages - JWT authentication required
+                    .requestMatchers("/dashboard", "/expenses", "/add-expense", "/profile", "/settings", "/reports").authenticated()
+                    // API endpoints - JWT required
+                    .requestMatchers("/api/**").authenticated()
+                    // All other requests require authentication
                     .anyRequest().authenticated()
             )
             .sessionManagement(
                 httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer
                     .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
+            )
+            // Disable form login - using JWT only
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            // Handle authentication failures
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    // For AJAX/API requests, return 401
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\": \"Authentication required\"}");
+                    } else {
+                        // For web requests, redirect to login
+                        response.sendRedirect("/login");
+                    }
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    // For AJAX/API requests, return 403
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\": \"Access denied\"}");
+                    } else {
+                        // For web requests, redirect to access denied page
+                        response.sendRedirect("/access-denied");
+                    }
+                })
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); 

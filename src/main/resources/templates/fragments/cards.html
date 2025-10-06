@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<!-- Statistics Card Fragment -->
+<div th:fragment="stat-card(title, value, icon, color)" class="stat-card">
+    <div class="stat-icon" th:style="'color: ' + ${color ?: 'var(--light-green)'}">
+        <i th:class="'fas fa-' + ${icon}"></i>
+    </div>
+    <div class="stat-content">
+        <div class="stat-value" th:text="${value}">0</div>
+        <div class="stat-label" th:text="${title}">Statistic</div>
+    </div>
+</div>
+
+<!-- Expense Card Fragment -->
+<div th:fragment="expense-card(expense)" class="card">
+    <div class="expense-item">
+        <div class="expense-header">
+            <div class="expense-title">
+                <i class="fas fa-receipt expense-icon"></i>
+                <span th:text="${expense.description}">Expense Description</span>
+            </div>
+            <div class="expense-amount" th:text="'$' + ${#numbers.formatDecimal(expense.amount, 1, 2)}">$0.00</div>
+        </div>
+        
+        <div class="expense-details">
+            <div class="expense-meta">
+                <span class="expense-category">
+                    <i class="fas fa-tag"></i>
+                    <span th:text="${expense.category}">Category</span>
+                </span>
+                <span class="expense-date">
+                    <i class="fas fa-calendar"></i>
+                    <span th:text="${#dates.format(expense.createdAt, 'MMM dd, yyyy')}">Date</span>
+                </span>
+            </div>
+            
+            <div class="expense-actions">
+                <button class="btn btn-sm btn-secondary" th:onclick="'editExpense(' + ${expense.id} + ')'">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </button>
+                <button class="btn btn-sm btn-danger" th:onclick="'deleteExpense(' + ${expense.id} + ')'">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simple Info Card -->
+<div th:fragment="info-card(title, content, icon)" class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i th:if="${icon}" th:class="'fas fa-' + ${icon}"></i>
+            <span th:text="${title}">Card Title</span>
+        </h3>
+    </div>
+    <div class="card-body" th:utext="${content}">
+        Card content goes here
+    </div>
+</div>
+
+<!-- Action Card with Buttons -->
+<div th:fragment="action-card(title, content, actions)" class="card">
+    <div class="card-header">
+        <h3 class="card-title" th:text="${title}">Card Title</h3>
+    </div>
+    <div class="card-body">
+        <div th:utext="${content}">Card content</div>
+        <div class="card-actions" th:if="${actions}">
+            <div th:each="action : ${actions}">
+                <a th:if="${action.type == 'link'}" 
+                   th:href="${action.url}" 
+                   th:class="'btn ' + ${action.class}">
+                    <i th:if="${action.icon}" th:class="'fas fa-' + ${action.icon}"></i>
+                    <span th:text="${action.text}">Action</span>
+                </a>
+                <button th:if="${action.type == 'button'}" 
+                        th:onclick="${action.onclick}"
+                        th:class="'btn ' + ${action.class}">
+                    <i th:if="${action.icon}" th:class="'fas fa-' + ${action.icon}"></i>
+                    <span th:text="${action.text}">Action</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Expenses Card -->
+<div th:fragment="recent-expenses-card(expenses)" class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-clock"></i>
+            Recent Expenses
+        </h3>
+        <a href="/expenses" class="btn btn-sm btn-secondary">View All</a>
+    </div>
+    <div class="card-body">
+        <div th:if="${expenses != null && !expenses.empty}">
+            <div th:each="expense : ${expenses}" class="recent-expense-item">
+                <div class="expense-info">
+                    <div class="expense-desc" th:text="${expense.description}">Description</div>
+                    <div class="expense-meta">
+                        <span class="expense-category" th:text="${expense.category}">Category</span>
+                        <span class="expense-date" th:text="${#dates.format(expense.createdAt, 'MMM dd')}">Date</span>
+                    </div>
+                </div>
+                <div class="expense-amount" th:text="'$' + ${#numbers.formatDecimal(expense.amount, 1, 2)}">$0.00</div>
+            </div>
+        </div>
+        <div th:if="${expenses == null || expenses.empty}" class="empty-state">
+            <i class="fas fa-receipt empty-icon"></i>
+            <div class="empty-title">No Recent Expenses</div>
+            <div class="empty-message">Start tracking your expenses to see them here.</div>
+            <a href="/add-expense" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Add First Expense
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Category Breakdown Card -->
+<div th:fragment="category-breakdown-card(categoryData)" class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-chart-pie"></i>
+            Spending by Category
+        </h3>
+    </div>
+    <div class="card-body">
+        <div th:if="${categoryData != null && !categoryData.empty}">
+            <div th:each="category : ${categoryData}" class="category-item">
+                <div class="category-info">
+                    <div class="category-name" th:text="${category.name}">Category</div>
+                    <div class="category-percentage" th:text="${category.percentage + '%'}">0%</div>
+                </div>
+                <div class="category-bar">
+                    <div class="category-fill" th:style="'width: ' + ${category.percentage} + '%'"></div>
+                </div>
+                <div class="category-amount" th:text="'$' + ${#numbers.formatDecimal(category.amount, 1, 2)}">$0.00</div>
+            </div>
+        </div>
+        <div th:if="${categoryData == null || categoryData.empty}" class="empty-state">
+            <i class="fas fa-chart-pie empty-icon"></i>
+            <div class="empty-title">No Category Data</div>
+            <div class="empty-message">Add some expenses to see category breakdown.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom CSS for Card Components -->
+<style th:fragment="card-styles">
+.expense-item {
+    border-left: 4px solid var(--light-green);
+    padding-left: 1rem;
+}
+
+.expense-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.expense-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.expense-icon {
+    color: var(--light-green);
+    font-size: 1.2rem;
+}
+
+.expense-amount {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--light-green);
+}
+
+.expense-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.expense-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.expense-category,
+.expense-date {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.expense-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.card-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.recent-expense-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-grey);
+}
+
+.recent-expense-item:last-child {
+    border-bottom: none;
+}
+
+.expense-info {
+    flex: 1;
+}
+
+.expense-desc {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.expense-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.category-item {
+    margin-bottom: 1.5rem;
+}
+
+.category-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.category-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.category-percentage {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.category-bar {
+    background: var(--border-grey);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.category-fill {
+    background: linear-gradient(90deg, var(--light-green), var(--secondary-green));
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.category-amount {
+    text-align: right;
+    font-weight: 600;
+    color: var(--light-green);
+}
+
+@media (max-width: 768px) {
+    .expense-details {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .expense-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .card-actions {
+        flex-direction: column;
+    }
+    
+    .expense-actions {
+        align-self: stretch;
+    }
+    
+    .expense-actions .btn {
+        flex: 1;
+    }
+}
+</style>
+
+</html>

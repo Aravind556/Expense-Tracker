@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head(title='Add Expense')}"></head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/base :: header}"></div>
+    
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div class="page-title-section">
+                        <h1 class="page-title">
+                            <i class="fas fa-plus"></i>
+                            <span th:text="${expense != null && expense.id != null ? 'Edit Expense' : 'Add New Expense'}">Add New Expense</span>
+                        </h1>
+                        <p class="page-subtitle" th:text="${expense != null && expense.id != null ? 'Update your expense details' : 'Record a new expense transaction'}">Record a new expense transaction</p>
+                    </div>
+                    <div class="page-actions">
+                        <a href="/expenses" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Expenses
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expense Form -->
+            <div class="form-section">
+                <div class="form-container">
+                    <form id="expenseForm" th:object="${expense}">
+                        <!-- Hidden ID field for editing -->
+                        <input type="hidden" th:field="*{id}" th:if="${expense != null && expense.id != null}">
+                        
+                        <div class="form-grid">
+                            <!-- Left Column -->
+                            <div class="form-column">
+                                <!-- Description Field -->
+                                <div class="form-group">
+                                    <label for="description">Description</label>
+                                    <div class="input-group">
+                                        <div class="input-icon">
+                                            <i class="fas fa-receipt"></i>
+                                        </div>
+                                        <input type="text" 
+                                               id="description" 
+                                               name="description" 
+                                               placeholder="Enter expense description"
+                                               th:value="${expense?.description}"
+                                               class="form-control" 
+                                               required>
+                                    </div>
+                                </div>
+                                
+                                <!-- Amount Field -->
+                                <div class="form-group">
+                                    <label for="amount">Amount ($)</label>
+                                    <div class="input-group">
+                                        <div class="input-icon">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </div>
+                                        <input type="number" 
+                                               id="amount" 
+                                               name="amount" 
+                                               placeholder="0.00"
+                                               th:value="${expense?.amount}"
+                                               class="form-control" 
+                                               step="0.01"
+                                               min="0"
+                                               required>
+                                    </div>
+                                </div>
+                                
+                                <!-- Category Field -->
+                                <div class="form-group">
+                                    <label for="category">Category</label>
+                                    <div class="input-group">
+                                        <div class="input-icon">
+                                            <i class="fas fa-tag"></i>
+                                        </div>
+                                        <select id="category" name="category" class="form-control" required>
+                                            <option value="">Select a category</option>
+                                            <option value="FOOD" th:selected="${expense?.category?.name() == 'FOOD'}">🍔 Food & Dining</option>
+                                            <option value="TRANSPORTATION" th:selected="${expense?.category?.name() == 'TRANSPORTATION'}">🚗 Transportation</option>
+                                            <option value="ENTERTAINMENT" th:selected="${expense?.category?.name() == 'ENTERTAINMENT'}">🎬 Entertainment</option>
+                                            <option value="UTILITIES" th:selected="${expense?.category?.name() == 'UTILITIES'}">⚡ Utilities</option>
+                                            <option value="HEALTHCARE" th:selected="${expense?.category?.name() == 'HEALTHCARE'}">🏥 Healthcare</option>
+                                            <option value="OTHER" th:selected="${expense?.category?.name() == 'OTHER'}">📦 Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column -->
+                            <div class="form-column">
+                                <!-- Date Field -->
+                                <div class="form-group">
+                                    <label for="createdAt">Date</label>
+                                    <div class="input-group">
+                                        <div class="input-icon">
+                                            <i class="fas fa-calendar"></i>
+                                        </div>
+                                        <input type="date" 
+                                               id="createdAt" 
+                                               name="createdAt" 
+                                               th:value="${expense?.createdAt != null ? #dates.format(expense.createdAt, 'yyyy-MM-dd') : #dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
+                                               class="form-control" 
+                                               required>
+                                    </div>
+                                    <small class="form-text">When did this expense occur?</small>
+                                </div>
+                                
+                                <!-- Additional Notes field removed as requested -->
+                                
+                                <!-- Quick Amount Buttons -->
+                                <div class="form-group">
+                                    <label>Quick Amount Selection</label>
+                                    <div class="quick-amounts">
+                                        <button type="button" class="quick-amount-btn" onclick="setAmount(5)">$5</button>
+                                        <button type="button" class="quick-amount-btn" onclick="setAmount(10)">$10</button>
+                                        <button type="button" class="quick-amount-btn" onclick="setAmount(20)">$20</button>
+                                        <button type="button" class="quick-amount-btn" onclick="setAmount(50)">$50</button>
+                                        <button type="button" class="quick-amount-btn" onclick="setAmount(100)">$100</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <div class="action-buttons">
+                                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                    <i class="fas fa-undo"></i>
+                                    Reset Form
+                                </button>
+                                
+                                <div th:replace="~{fragments/forms :: loading-button(
+                                    text=${expense != null && expense.id != null ? 'Update Expense' : 'Add Expense'}, 
+                                    loadingText='Saving...'
+                                )}"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Expense Preview Card -->
+                <div class="preview-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-eye"></i>
+                                Expense Preview
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="expensePreview" class="expense-preview">
+                                <div class="preview-item">
+                                    <span class="preview-label">Description:</span>
+                                    <span id="previewDescription" class="preview-value">-</span>
+                                </div>
+                                <div class="preview-item">
+                                    <span class="preview-label">Amount:</span>
+                                    <span id="previewAmount" class="preview-value">$0.00</span>
+                                </div>
+                                <div class="preview-item">
+                                    <span class="preview-label">Category:</span>
+                                    <span id="previewCategory" class="preview-value">-</span>
+                                </div>
+                                <div class="preview-item">
+                                    <span class="preview-label">Date:</span>
+                                    <span id="previewDate" class="preview-value">-</span>
+                                </div>
+                                <div class="preview-item" id="previewNotesContainer" style="display: none;">
+                                    <span class="preview-label">Notes:</span>
+                                    <span id="previewNotes" class="preview-value">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Expenses Card -->
+                    <div class="card" th:if="${recentExpenses != null && !recentExpenses.empty}">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-history"></i>
+                                Recent Expenses
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="recent-list">
+                                <div th:each="recent : ${recentExpenses}" class="recent-item">
+                                    <div class="recent-info">
+                                        <div class="recent-desc" th:text="${recent.description}">Description</div>
+                                        <div class="recent-meta">
+                                            <span th:text="${recent.category}">Category</span>
+                                            <span th:text="${#dates.format(recent.createdAt, 'MMM dd')}">Date</span>
+                                        </div>
+                                    </div>
+                                    <div class="recent-amount" th:text="'$' + ${#numbers.formatDecimal(recent.amount, 1, 2)}">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Include Form Styles -->
+    <div th:replace="~{fragments/forms :: form-styles}"></div>
+    
+    <!-- Add Expense Specific Styles -->
+    <style>
+        .page-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title-section {
+            flex: 1;
+        }
+        
+        .page-title {
+            font-size: 2.5rem;
+            color: var(--light-green);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .page-actions {
+            flex-shrink: 0;
+        }
+        
+        .form-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        .form-container {
+            background: var(--medium-grey);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px var(--shadow);
+            border: 1px solid var(--border-grey);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .form-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+        
+        .quick-amounts {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .quick-amount-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-grey);
+            background: var(--light-grey);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        
+        .quick-amount-btn:hover {
+            border-color: var(--light-green);
+            background: var(--light-green);
+            color: white;
+        }
+        
+        .form-actions {
+            border-top: 2px solid var(--border-grey);
+            padding-top: 2rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+        }
+        
+        .preview-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .expense-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .preview-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-grey);
+        }
+        
+        .preview-item:last-child {
+            border-bottom: none;
+        }
+        
+        .preview-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .preview-value {
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: right;
+        }
+        
+        .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-grey);
+        }
+        
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recent-info {
+            flex: 1;
+        }
+        
+        .recent-desc {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .recent-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .recent-amount {
+            font-weight: 600;
+            color: var(--light-green);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .form-section {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .page-actions {
+                align-self: stretch;
+            }
+            
+            .page-actions .btn {
+                width: 100%;
+            }
+            
+            .form-container {
+                padding: 1.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column-reverse;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+            }
+            
+            .quick-amounts {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 1.8rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .form-container {
+                padding: 1rem;
+            }
+            
+            .quick-amount-btn {
+                flex: 1;
+                min-width: 60px;
+            }
+        }
+    </style>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/expense.js}"></script>
+    <script>
+        // Initialize add expense page
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFormPreview();
+            setupQuickAmounts();
+            
+            // Focus on description field
+            document.getElementById('description').focus();
+        });
+        
+        function setupFormPreview() {
+            try {
+                console.log('Setting up form preview...');
+                const form = document.getElementById('expenseForm');
+                if (!form) {
+                    console.warn('Expense form not found for preview setup');
+                    return;
+                }
+                
+                const inputs = form.querySelectorAll('input, select, textarea');
+                console.log(`Found ${inputs.length} input elements:`, Array.from(inputs).map(el => el.id || el.name));
+                
+                inputs.forEach(input => {
+                    console.log(`Attaching listeners to ${input.id || input.name}`);
+                    input.addEventListener('input', updatePreview);
+                    input.addEventListener('change', updatePreview);
+                });
+                
+                // Initial preview update
+                updatePreview();
+                console.log('Form preview setup complete');
+            } catch (error) {
+                console.error('Error setting up form preview:', error);
+            }
+        }
+        
+        function updatePreview() {
+            try {
+                console.log('updatePreview called');
+                const description = document.getElementById('description')?.value || '-';
+                const amount = document.getElementById('amount')?.value;
+                const category = document.getElementById('category');
+                const categoryText = category ? category.options[category.selectedIndex]?.text : '-';
+                const date = document.getElementById('createdAt')?.value;
+                
+                console.log('Values:', { description, amount, categoryText, date });
+                
+                const previewDescription = document.getElementById('previewDescription');
+                const previewAmount = document.getElementById('previewAmount');
+                const previewCategory = document.getElementById('previewCategory');
+                const previewDate = document.getElementById('previewDate');
+                
+                console.log('Preview elements found:', {
+                    previewDescription: !!previewDescription,
+                    previewAmount: !!previewAmount,
+                    previewCategory: !!previewCategory,
+                    previewDate: !!previewDate
+                });
+                
+                if (previewDescription) previewDescription.textContent = description;
+                if (previewAmount) previewAmount.textContent = amount ? `$${parseFloat(amount).toFixed(2)}` : '$0.00';
+                if (previewCategory) previewCategory.textContent = categoryText;
+                if (previewDate) previewDate.textContent = date ? new Date(date).toLocaleDateString() : '-';
+                
+                // Hide notes container since notes field was removed
+                const notesContainer = document.getElementById('previewNotesContainer');
+                if (notesContainer) {
+                    notesContainer.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error updating preview:', error);
+            }
+        }
+        
+        function setupQuickAmounts() {
+            const amountInput = document.getElementById('amount');
+            const quickButtons = document.querySelectorAll('.quick-amount-btn');
+            
+            quickButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const amount = this.textContent.replace('$', '');
+                    amountInput.value = amount;
+                    amountInput.focus();
+                    updatePreview();
+                    
+                    // Visual feedback
+                    this.style.background = 'var(--light-green)';
+                    this.style.color = 'white';
+                    setTimeout(() => {
+                        this.style.background = '';
+                        this.style.color = '';
+                    }, 200);
+                });
+            });
+        }
+        
+        function setAmount(amount) {
+            document.getElementById('amount').value = amount;
+            document.getElementById('amount').focus();
+            updatePreview();
+        }
+        
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+                document.getElementById('expenseForm').reset();
+                // Set date to today
+                document.getElementById('createdAt').value = new Date().toISOString().split('T')[0];
+                updatePreview();
+                document.getElementById('description').focus();
+            }
+        }
+    </script>
+</body>
+</html>

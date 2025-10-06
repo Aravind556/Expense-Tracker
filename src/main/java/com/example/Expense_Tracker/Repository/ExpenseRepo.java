@@ -20,6 +20,7 @@ public interface ExpenseRepo extends JpaRepository<Expense, Long> {
     Optional<Expense> findById(Long id);
     // Find expense by ID and user (for security - user can only access their own expenses)
     Optional<Expense> findByIdAndUserUsername(Long id, String username);
+    
     // Find expenses by category for a specific user
     List<Expense> findByUserUsernameAndCategoryOrderByCreatedAtDesc(String username, Category category);
     

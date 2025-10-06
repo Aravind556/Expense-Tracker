@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head(title='Error')}"></head>
+<body>
+    <!-- Header (only show if user is authenticated) -->
+    <div th:replace="~{fragments/base :: header}" th:if="${#authorization?.expression('isAuthenticated()')}"></div>
+    
+    <main class="main-content">
+        <div class="container">
+            <div class="error-container">
+                <div class="error-card">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    
+                    <div class="error-content">
+                        <h1 class="error-title">Oops! Something went wrong</h1>
+                        
+                        <div class="error-message" th:if="${error}">
+                            <p th:text="${error}">An unexpected error occurred</p>
+                        </div>
+                        
+                        <div class="error-message" th:unless="${error}">
+                            <p>We're sorry, but something went wrong. Please try again later.</p>
+                        </div>
+                        
+                        <div class="error-actions">
+                            <a href="javascript:history.back()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Go Back
+                            </a>
+                            
+                            <a href="/dashboard" class="btn btn-primary" th:if="${#authorization?.expression('isAuthenticated()')}">
+                                <i class="fas fa-home"></i>
+                                Dashboard
+                            </a>
+                            
+                            <a href="/login" class="btn btn-primary" th:unless="${#authorization?.expression('isAuthenticated()')}">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Login
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Error Page Styles -->
+    <style>
+        .error-container {
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .error-card {
+            background: var(--medium-grey);
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px var(--shadow);
+            border: 1px solid var(--border-grey);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            color: var(--danger);
+            margin-bottom: 2rem;
+        }
+        
+        .error-title {
+            font-size: 2.2rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .error-message {
+            margin-bottom: 2rem;
+        }
+        
+        .error-message p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .error-actions .btn {
+            min-width: 140px;
+        }
+        
+        @media (max-width: 768px) {
+            .error-container {
+                padding: 1rem;
+                min-height: 60vh;
+            }
+            
+            .error-card {
+                padding: 2rem;
+            }
+            
+            .error-title {
+                font-size: 1.8rem;
+            }
+            
+            .error-icon {
+                font-size: 3rem;
+            }
+            
+            .error-actions {
+                flex-direction: column;
+            }
+            
+            .error-actions .btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .error-card {
+                padding: 1.5rem;
+            }
+            
+            .error-title {
+                font-size: 1.6rem;
+            }
+            
+            .error-message p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</body>
+</html>

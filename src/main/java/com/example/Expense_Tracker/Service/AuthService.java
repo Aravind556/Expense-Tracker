@@ -53,8 +53,14 @@ public class AuthService{
 
         String jwt = jwtService.generateToken(user);
 
+        UserDto userDto = UserDto.builder()
+            .username(user.getUsername())
+            .password(null) // Don't send password back
+            .build();
+
         return AuthResponse.builder()
             .token(jwt)
+            .user(userDto)
             .build();
    }
 
@@ -71,8 +77,15 @@ public class AuthService{
             .orElseThrow(() -> new UserNotFoundException("User not found: " + userDto.getUsername()));
 
         String jwt = jwtService.generateToken(user);
+        
+        UserDto responseUserDto = UserDto.builder()
+            .username(user.getUsername())
+            .password(null) // Don't send password back
+            .build();
+        
         return AuthResponse.builder()
             .token(jwt)
+            .user(responseUserDto)
             .build();
    }
 

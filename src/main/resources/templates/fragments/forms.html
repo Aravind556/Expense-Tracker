@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<!-- Form Fields Fragment -->
+<div th:fragment="text-input(id, name, label, placeholder, value, required)" class="form-group">
+    <label th:for="${id}" th:text="${label}">Label</label>
+    <input type="text" 
+           th:id="${id}" 
+           th:name="${name}" 
+           th:placeholder="${placeholder}"
+           th:value="${value}"
+           th:required="${required}"
+           class="form-control">
+</div>
+
+<div th:fragment="email-input(id, name, label, placeholder, value, required)" class="form-group">
+    <label th:for="${id}" th:text="${label}">Label</label>
+    <input type="email" 
+           th:id="${id}" 
+           th:name="${name}" 
+           th:placeholder="${placeholder}"
+           th:value="${value}"
+           th:required="${required}"
+           class="form-control">
+</div>
+
+<div th:fragment="password-input(id, name, label, placeholder, required)" class="form-group">
+    <label th:for="${id}" th:text="${label}">Label</label>
+    <input type="password" 
+           th:id="${id}" 
+           th:name="${name}" 
+           th:placeholder="${placeholder}"
+           th:required="${required}"
+           class="form-control">
+</div>
+
+<div th:fragment="number-input(id, name, label, placeholder, value, min, max, step, required)" class="form-group">
+    <label th:for="${id}" th:text="${label}">Label</label>
+    <input type="number" 
+           th:id="${id}" 
+           th:name="${name}" 
+           th:placeholder="${placeholder}"
+           th:value="${value}"
+           th:min="${min}"
+           th:max="${max}"
+           th:step="${step}"
+           th:required="${required}"
+           class="form-control">
+</div>
+
+<div th:fragment="date-input(id, name, label, value, required)" class="form-group">
+    <label th:for="${id}" th:text="${label}">Label</label>
+    <input type="date" 
+           th:id="${id}" 
+           th:name="${name}" 
+           th:value="${value}"
+           th:required="${required}"
+           class="form-control">
+</div>
+
+<div th:fragment="select-input(id, name, label, options, selectedValue, required)" class="form-group">
+    <label th:for="${id}" th:text="${label}">Label</label>
+    <select th:id="${id}" 
+            th:name="${name}" 
+            th:required="${required}"
+            class="form-control">
+        <option value="">Select an option</option>
+        <option th:each="option : ${options}" 
+                th:value="${option.value}" 
+                th:text="${option.text}"
+                th:selected="${option.value == selectedValue}">Option</option>
+    </select>
+</div>
+
+<div th:fragment="textarea-input(id, name, label, placeholder, value, rows, required)" class="form-group">
+    <label th:for="${id}" th:text="${label}">Label</label>
+    <textarea th:id="${id}" 
+              th:name="${name}" 
+              th:placeholder="${placeholder}"
+              th:text="${value}"
+              th:rows="${rows ?: 4}"
+              th:required="${required}"
+              class="form-control"></textarea>
+</div>
+
+<!-- Button Components -->
+<button th:fragment="primary-button(text, icon, type, onclick)" 
+        th:type="${type ?: 'button'}"
+        th:onclick="${onclick}"
+        class="btn btn-primary">
+    <i th:if="${icon}" th:class="'fas fa-' + ${icon}"></i>
+    <span th:text="${text}">Button</span>
+</button>
+
+<button th:fragment="success-button(text, icon, type, onclick)" 
+        th:type="${type ?: 'button'}"
+        th:onclick="${onclick}"
+        class="btn btn-success">
+    <i th:if="${icon}" th:class="'fas fa-' + ${icon}"></i>
+    <span th:text="${text}">Button</span>
+</button>
+
+<button th:fragment="danger-button(text, icon, type, onclick)" 
+        th:type="${type ?: 'button'}"
+        th:onclick="${onclick}"
+        class="btn btn-danger">
+    <i th:if="${icon}" th:class="'fas fa-' + ${icon}"></i>
+    <span th:text="${text}">Button</span>
+</button>
+
+<button th:fragment="secondary-button(text, icon, type, onclick)" 
+        th:type="${type ?: 'button'}"
+        th:onclick="${onclick}"
+        class="btn btn-secondary">
+    <i th:if="${icon}" th:class="'fas fa-' + ${icon}"></i>
+    <span th:text="${text}">Button</span>
+</button>
+
+<a th:fragment="link-button(text, icon, href, cssClass)" 
+   th:href="${href}"
+   th:class="'btn ' + ${cssClass ?: 'btn-primary'}">
+    <i th:if="${icon}" th:class="'fas fa-' + ${icon}"></i>
+    <span th:text="${text}">Link</span>
+</a>
+
+<!-- Form Validation Messages -->
+<div th:fragment="field-error(fieldName)" 
+     th:if="${#fields.hasErrors(fieldName)}" 
+     class="field-error">
+    <i class="fas fa-exclamation-circle"></i>
+    <span th:errors="*{__${fieldName}__}">Error message</span>
+</div>
+
+<!-- Loading Button State -->
+<button th:fragment="loading-button(text, loadingText)" 
+        type="submit" 
+        class="btn btn-primary"
+        id="submitBtn">
+    <span class="btn-text" th:text="${text}">Submit</span>
+    <span class="btn-loading" th:text="${loadingText ?: 'Processing...'}" style="display: none;">Loading...</span>
+    <i class="fas fa-spinner fa-spin btn-spinner" style="display: none;"></i>
+</button>
+
+<!-- Two Column Form Layout -->
+<div th:fragment="form-row(leftContent, rightContent)" class="form-row">
+    <div th:replace="${leftContent}"></div>
+    <div th:replace="${rightContent}"></div>
+</div>
+
+<!-- Form Group with Icon -->
+<div th:fragment="input-with-icon(id, name, label, type, placeholder, value, icon, required)" class="form-group">
+    <label th:for="${id}" th:text="${label}">Label</label>
+    <div class="input-group">
+        <div class="input-icon">
+            <i th:class="'fas fa-' + ${icon}"></i>
+        </div>
+        <input th:type="${type ?: 'text'}" 
+               th:id="${id}" 
+               th:name="${name}" 
+               th:placeholder="${placeholder}"
+               th:value="${value}"
+               th:required="${required}"
+               class="form-control">
+    </div>
+</div>
+
+<!-- Custom CSS for input groups -->
+<style th:fragment="form-styles">
+.input-group {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    z-index: 2;
+}
+
+.input-group .form-control {
+    padding-left: 3rem;
+}
+
+.field-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--danger);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.btn-loading,
+.btn-spinner {
+    display: none;
+}
+
+.btn.loading .btn-text {
+    display: none;
+}
+
+.btn.loading .btn-loading,
+.btn.loading .btn-spinner {
+    display: inline;
+}
+
+.btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+</style>
+
+</html>

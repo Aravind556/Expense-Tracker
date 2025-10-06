@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head}"></head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to your account to continue</p>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <!-- Username Field -->
+                <div th:replace="~{fragments/forms :: input-with-icon(
+                    id='username', 
+                    name='username', 
+                    label='Username', 
+                    type='text', 
+                    placeholder='Enter your username', 
+                    value='', 
+                    icon='user', 
+                    required=true
+                )}"></div>
+                
+                <!-- Password Field -->
+                <div th:replace="~{fragments/forms :: input-with-icon(
+                    id='password', 
+                    name='password', 
+                    label='Password', 
+                    type='password', 
+                    placeholder='Enter your password', 
+                    value='', 
+                    icon='lock', 
+                    required=true
+                )}"></div>
+                
+                <!-- Remember Me -->
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        <span class="checkmark"></span>
+                        Remember me
+                    </label>
+                </div>
+                
+                <!-- Submit Button -->
+                <div th:replace="~{fragments/forms :: loading-button(text='Sign In', loadingText='Signing In...')}"></div>
+            </form>
+            
+            <!-- Auth Footer -->
+            <div class="auth-footer">
+                <p>Don't have an account? 
+                    <a href="/register" class="auth-link">Create one here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include Form Styles -->
+    <div th:replace="~{fragments/forms :: form-styles}"></div>
+    
+    <!-- Custom Styles for Login -->
+    <style>
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            user-select: none;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--light-green);
+            cursor: pointer;
+        }
+        
+        .auth-container {
+            background: linear-gradient(135deg, 
+                var(--dark-grey) 0%, 
+                var(--medium-grey) 50%, 
+                var(--dark-grey) 100%);
+            background-attachment: fixed;
+            position: relative;
+        }
+        
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234a7c59' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+        
+        .auth-card {
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 124, 89, 0.2);
+        }
+        
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(45, 102, 80, 0.1) 0%, 
+                rgba(26, 77, 58, 0.1) 100%);
+            border-radius: 16px;
+            z-index: -1;
+        }
+        
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1rem;
+            }
+            
+            .auth-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .auth-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/auth.js}"></script>
+    <script>
+        // Initialize login page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize AuthManager
+            new AuthManager();
+            
+            // Focus on username field
+            document.getElementById('username').focus();
+            
+            // Add enter key handler
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const submitBtn = document.getElementById('submitBtn');
+                    if (submitBtn && !submitBtn.disabled) {
+                        submitBtn.click();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head(title='Expenses')}"></head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/base :: header}"></div>
+    
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-header-content">
+                    <div class="page-title-section">
+                        <h1 class="page-title">
+                            <i class="fas fa-list"></i>
+                            All Expenses
+                        </h1>
+                        <p class="page-subtitle">Manage and track all your expenses</p>
+                    </div>
+                    <div class="page-actions">
+                        <a href="/add-expense" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Expense
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters and Search -->
+            <div class="filters-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-filter"></i>
+                            Filter Expenses
+                        </h3>
+                        <div class="card-actions">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="expenseManager.clearFilters()">
+                                <i class="fas fa-times"></i>
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Quick Filter Buttons -->
+                        <div class="quick-filters">
+                            <label class="filter-label">Quick Filters:</label>
+                            <div class="quick-filter-buttons">
+                                <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="week">
+                                    <i class="fas fa-calendar-week"></i>
+                                    This Week
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="month">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    This Month
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="30days">
+                                    <i class="fas fa-calendar-day"></i>
+                                    Last 30 Days
+                                </button>
+                            </div>
+                        </div>
+
+                        <form id="filterForm" class="filters-form">
+                            <div class="filter-row">
+                                <!-- Search Input -->
+                                <div class="filter-group">
+                                    <label for="searchText">
+                                        <i class="fas fa-search"></i>
+                                        Search
+                                    </label>
+                                    <input type="text" id="searchText" name="search" placeholder="Search by description, category, or amount..." class="form-control">
+                                </div>
+
+                                <!-- Category Filter -->
+                                <div class="filter-group">
+                                    <label for="categoryFilter">
+                                        <i class="fas fa-tag"></i>
+                                        Category
+                                    </label>
+                                    <select id="categoryFilter" name="category" class="form-control">
+                                        <option value="">All Categories</option>
+                                        <option value="FOOD">🍕 Food</option>
+                                        <option value="TRANSPORTATION">🚗 Transportation</option>
+                                        <option value="ENTERTAINMENT">🎬 Entertainment</option>
+                                        <option value="UTILITIES">💡 Utilities</option>
+                                        <option value="HEALTHCARE">🏥 Healthcare</option>
+                                        <option value="SHOPPING">🛍️ Shopping</option>
+                                        <option value="EDUCATION">📚 Education</option>
+                                        <option value="OTHER">📝 Other</option>
+                                    </select>
+                                </div>
+
+                                <!-- Date Range Filters -->
+                                <div class="filter-group">
+                                    <label for="dateFrom">
+                                        <i class="fas fa-calendar-plus"></i>
+                                        From Date
+                                    </label>
+                                    <input type="date" id="dateFrom" name="dateFrom" class="form-control">
+                                </div>
+
+                                <div class="filter-group">
+                                    <label for="dateTo">
+                                        <i class="fas fa-calendar-minus"></i>
+                                        To Date
+                                    </label>
+                                    <input type="date" id="dateTo" name="dateTo" class="form-control">
+                                </div>
+
+                                <!-- Amount Range Filters -->
+                                <div class="filter-group">
+                                    <label for="minAmount">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        Min Amount
+                                    </label>
+                                    <input type="number" id="minAmount" name="minAmount" placeholder="0.00" step="0.01" min="0" class="form-control">
+                                </div>
+
+                                <div class="filter-group">
+                                    <label for="maxAmount">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        Max Amount
+                                    </label>
+                                    <input type="number" id="maxAmount" name="maxAmount" placeholder="0.00" step="0.01" min="0" class="form-control">
+                                </div>
+
+                                <!-- Filter Actions -->
+                                <div class="filter-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i>
+                                        Apply Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Active Filters Display -->
+                        <div id="activeFilters" class="active-filters" style="display: none;">
+                            <div class="active-filters-header">
+                                <span class="active-filters-title">Active Filters:</span>
+                                <button type="button" class="btn btn-sm btn-link" onclick="expenseManager.clearFilters()">
+                                    Clear All
+                                </button>
+                            </div>
+                            <div id="activeFiltersList" class="active-filters-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expenses List -->
+            <div class="expenses-section">
+                <!-- Filter Summary -->
+                <div class="filter-summary">
+                    <div id="filterSummary" class="filter-summary-text">Loading expenses...</div>
+                    <div class="filter-summary-actions">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="expenseManager.loadExpenses()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingExpenses" class="loading-state" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading expenses...</div>
+                </div>
+
+                <!-- Expenses Container -->
+                <div id="expensesContainer">
+                    <!-- Server-side rendered expenses -->
+                    <div th:if="${expenses != null && !expenses.empty}">
+                        <div th:each="expense : ${expenses}"
+                             th:replace="~{fragments/cards :: expense-card(expense=${expense})}"></div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:if="${expenses == null || expenses.empty}" class="empty-state">
+                        <i class="fas fa-receipt empty-icon"></i>
+                        <div class="empty-title">No Expenses Found</div>
+                        <div class="empty-message">
+                            <span th:if="${hasFilters}">Try adjusting your filters or</span>
+                            <span th:unless="${hasFilters}">Start by</span>
+                            <a href="/add-expense" class="empty-link">adding your first expense</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination (if needed in future) -->
+                <div id="paginationContainer" class="pagination-container" style="display: none;">
+                    <!-- Pagination controls can be added here -->
+                </div>
+            </div>
+                            <span th:unless="${hasFilters}">Start tracking your expenses by</span>
+                            adding your first expense.
+                        </div>
+                        <a href="/add-expense" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add First Expense
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div th:if="${totalPages != null && totalPages > 1}" class="pagination-section">
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Showing <span th:text="${currentPage * pageSize + 1}">1</span> to 
+                        <span th:text="${T(java.lang.Math).min((currentPage + 1) * pageSize, totalElements)}">10</span> 
+                        of <span th:text="${totalElements}">0</span> expenses
+                    </div>
+                    
+                    <div class="pagination-controls">
+                        <button th:if="${currentPage > 0}" 
+                                class="btn btn-secondary" 
+                                onclick="changePage(0)">
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        
+                        <button th:if="${currentPage > 0}" 
+                                class="btn btn-secondary" 
+                                th:onclick="'changePage(' + ${currentPage - 1} + ')'">
+                            <i class="fas fa-angle-left"></i>
+                        </button>
+                        
+                        <span class="pagination-current">
+                            Page <span th:text="${currentPage + 1}">1</span> of <span th:text="${totalPages}">1</span>
+                        </span>
+                        
+                        <button th:if="${currentPage < totalPages - 1}" 
+                                class="btn btn-secondary" 
+                                th:onclick="'changePage(' + ${currentPage + 1} + ')'">
+                            <i class="fas fa-angle-right"></i>
+                        </button>
+                        
+                        <button th:if="${currentPage < totalPages - 1}" 
+                                class="btn btn-secondary" 
+                                th:onclick="'changePage(' + ${totalPages - 1} + ')'">
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Include Card Styles -->
+    <div th:replace="~{fragments/cards :: card-styles}"></div>
+    
+    <!-- Expenses Page Specific Styles -->
+    <style>
+        .page-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title-section {
+            flex: 1;
+        }
+        
+        .page-title {
+            font-size: 2.5rem;
+            color: var(--light-green);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .page-actions {
+            flex-shrink: 0;
+        }
+        
+        .filters-section {
+            margin-bottom: 2rem;
+        }
+        
+        .filters-form {
+            padding: 0;
+        }
+        
+        .filter-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .expenses-section {
+            margin-bottom: 2rem;
+        }
+        
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .loading-state .loading-spinner {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 1rem;
+        }
+        
+        .pagination-section {
+            margin-top: 3rem;
+        }
+        
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+        }
+        
+        .pagination-info {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .pagination-current {
+            padding: 0 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .filter-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            
+            .filter-actions {
+                grid-column: 1 / -1;
+                justify-content: flex-start;
+                margin-top: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .page-actions {
+                align-self: stretch;
+            }
+            
+            .page-actions .btn {
+                width: 100%;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .pagination-container {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .pagination-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 1.8rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .filter-actions {
+                flex-direction: column;
+            }
+            
+            .filter-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/expense.js}"></script>
+    <script>
+        // Initialize ExpenseManager when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make expenseManager globally available
+            window.expenseManager = new ExpenseManager();
+        });
+
+        // Legacy functions for backward compatibility
+        function clearFilters() {
+            if (window.expenseManager) {
+                window.expenseManager.clearFilters();
+            }
+        }
+
+        function changePage(page) {
+            if (window.expenseManager) {
+                window.expenseManager.loadExpenses(page);
+            }
+        }
+    </script>
+</body>
+</html>

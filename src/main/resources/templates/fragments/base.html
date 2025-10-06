@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title != null ? title + ' - Expense Tracker' : 'Expense Tracker'}">Expense Tracker</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Additional CSS -->
+    <th:block th:fragment="additional-css"></th:block>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer" class="alert-container"></div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Navigation Fragment -->
+        <div th:fragment="header" class="main-navigation">
+            <nav class="navbar">
+                <div class="nav-container">
+                    <a href="/dashboard" class="brand-link">
+                        <i class="fas fa-wallet brand-icon"></i>
+                        <span class="brand-text">Expense Tracker</span>
+                    </a>
+                    
+                    <div class="nav-menu" id="navMenu">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        
+                        <a href="/expenses" class="nav-link">
+                            <i class="fas fa-list"></i>
+                            <span>Expenses</span>
+                        </a>
+                        
+                        <a href="/add-expense" class="nav-link">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Expense</span>
+                        </a>
+                        
+                        <button type="button" class="nav-link logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                    
+                    <div class="nav-toggle" id="navToggle">
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <th:block th:fragment="content">
+                    <!-- Page content will be inserted here -->
+                </th:block>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/auth.js}"></script>
+    
+    <!-- Additional JavaScript -->
+    <th:block th:fragment="additional-js"></th:block>
+</body>
+</html>
