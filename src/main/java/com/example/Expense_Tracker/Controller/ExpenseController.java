@@ -18,6 +18,7 @@ import com.example.Expense_Tracker.DTO.ExpenseDto;
 import com.example.Expense_Tracker.Model.Expense;
 import com.example.Expense_Tracker.Service.ExpenseService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 
@@ -30,7 +31,7 @@ public class ExpenseController {
     private final ExpenseService expenseService;
 
     @PostMapping("/add")
-    public ResponseEntity<Expense> AddExpense(@RequestBody ExpenseDto expense) {
+    public ResponseEntity<Expense> AddExpense(@Valid @RequestBody ExpenseDto expense) {
         Expense createdExpense = expenseService.addExpense(expense);
         return ResponseEntity.ok(createdExpense);
     }

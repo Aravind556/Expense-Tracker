@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import com.example.Expense_Tracker.Model.Expense.Category;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,5 +21,6 @@ public class ExpenseDto {
     private String description;
     private Category category;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonProperty(required = false)
     private LocalDateTime createdAt;
 }

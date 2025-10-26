@@ -11,7 +11,8 @@ class ExpenseManager {
     }
 
     init() {
-        this.setupEv// Global functions for template usage      this.loadExpenses();
+        this.setupEventListeners();
+        this.loadExpenses();
     }
 
     /**
@@ -97,6 +98,50 @@ class ExpenseManager {
             timeout = setTimeout(later, wait);
         };
     }
+    /**
+     * Render the list of expenses on the page
+     * @param {Array} expenses - List of expense objects
+     */
+    renderExpenses(expenses) {
+        const container = document.getElementById('expensesContainer');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (!expenses || expenses.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-receipt empty-icon"></i>
+                    <div class="empty-title">No Expenses Found</div>
+                    <div class="empty-message">
+                        Try adjusting your filters or add a new expense.
+                    </div>
+                    <a href="/add-expense" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Expense
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+    expenses.forEach(expense => {
+        const card = document.createElement('div');
+        card.classList.add('expense-card');
+        card.innerHTML = `
+            <div class="expense-item">
+                <div class="expense-header">
+                    <span class="expense-description">${expense.description}</span>
+                    <span class="expense-amount">$${parseFloat(expense.amount).toFixed(2)}</span>
+                </div>
+                <div class="expense-meta">
+                    <span>${expense.category}</span>
+                    <span>${new Date(expense.createdAt).toLocaleDateString()}</span>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
 
     /**
      * Load expenses with intelligent filtering using backend APIs
@@ -121,6 +166,18 @@ class ExpenseManager {
             this.showError('Failed to load expenses. Please try again.');
         } finally {
             this.showLoading(false);
+        }
+    }
+    /**
+     * Fetch all expenses from backend API
+     * @returns {Promise<Array>}
+     */
+    async fetchAllExpenses() {
+        try {
+            return await app.get('/get'); // or '/api/expense/get' if your backend path includes /api/expense
+        } catch (error) {
+            console.error('Error fetching all expenses:', error);
+            return [];
         }
     }
 
@@ -172,6 +229,8 @@ class ExpenseManager {
             return [];
         }
     }
+
+    
 
     /**
      * Fetch expenses by category using backend API
@@ -516,26 +575,6 @@ function editExpense(id) {
     window.location.href = `/add-expense?id=${id}`;
 }
 
-        const startElement = currentPage * pageSize + 1;
-        const endElement = Math.min((currentPage + 1) * pageSize, totalElements);
-
-function editExpense(id) {
-    window.location.href = `/add-expense?id=${id}`;
-}
-        try {
-            const response = await app.post(this.baseURL, expenseData);
-            app.showAlert('Expense added successfully!', 'success');
-            return response;
-        } catch (error) {
-            console.error('Error creating expense:', error);
-            app.showAlert(error.message || 'Failed to add expense', 'error');
-            throw error;
-        }
-    
-
-function editExpense(id) {
-    window.location.href = `/add-expense?id=${id}`;
-}
 
 function deleteExpense(id) {
     if (confirm('Are you sure you want to delete this expense?')) {
@@ -584,8 +623,8 @@ async function handleExpenseSubmit(event) {
 
     const formData = new FormData(form);
     const expenseData = {
-        description: formData.get('description'),
         amount: parseFloat(formData.get('amount')),
+        description: formData.get('description'),
         category: formData.get('category'),
         createdAt: formData.get('createdAt') ? formData.get('createdAt') + 'T00:00:00' : null
     };

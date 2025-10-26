@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,17 +51,17 @@ public class ExpenseService {
     }
 
     //creating an expense
-    public Expense addExpense(ExpenseDto expenseDto) {
+    public Expense addExpense(ExpenseDto expenseDto){
         User user = getCurrentUser();
 
-        Expense expense = Expense.builder()
+            Expense expense = Expense.builder()
             .amount(expenseDto.getAmount())
             .description(expenseDto.getDescription())
             .category(expenseDto.getCategory())
             .createdAt(expenseDto.getCreatedAt() != null ? expenseDto.getCreatedAt() : LocalDateTime.now())
             .user(user)
             .build();
-        return expenseRepo.save(expense); 
+        return expenseRepo.save(expense);      
     }
 
     public List<Expense> CategoryFilter(String category) {
