@@ -82,23 +82,6 @@ class ExpenseManager {
     }
 
     /**
-     * Debounce utility function to limit API calls during typing
-     * @param {Function} func - Function to debounce
-     * @param {number} wait - Wait time in milliseconds
-     * @returns {Function} Debounced function
-     */
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-    /**
      * Render the list of expenses on the page
      * @param {Array} expenses - List of expense objects
      */
@@ -142,49 +125,82 @@ class ExpenseManager {
         container.appendChild(card);
     });
 }
+renderPagination(currentPage, totalPages) {
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (!paginationContainer) return;
+
+    paginationContainer.innerHTML = '';
+
+    if (totalPages <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+    }
+
+    paginationContainer.style.display = 'flex';
+
+    const prevDisabled = currentPage === 0 ? 'disabled' : '';
+    const nextDisabled = currentPage >= totalPages - 1 ? 'disabled' : '';
+
+    paginationContainer.innerHTML = `
+        <button class="btn btn-secondary" ${prevDisabled} onclick="window.expenseManager.loadExpenses(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i> Prev
+        </button>
+        <span class="pagination-info">Page ${currentPage + 1} of ${totalPages}</span>
+        <button class="btn btn-secondary" ${nextDisabled} onclick="window.expenseManager.loadExpenses(${currentPage + 1})">
+            Next <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+}
+
 
     /**
      * Load expenses with intelligent filtering using backend APIs
      * @param {number} page - Page number for pagination
      */
     async loadExpenses(page = 0) {
-        try {
-            this.showLoading(true);
-            this.currentPage = page;
+    try {
+        this.showLoading(true);
+        this.currentPage = page;
 
-            // Get filtered expenses using backend APIs
-            const expenses = await this.fetchFilteredExpenses();
+        // Fetch expenses directly from backend with pagination
+        const data = await this.fetchExpensesFromBackend();
 
-            // Apply client-side filters (search, amount range)
-            const filteredExpenses = this.applyClientSideFilters(expenses);
+        this.renderExpenses(data.expenses);
+        this.renderPagination(data.currentPage, data.totalPages);
+        this.updateFilterSummary(data.totalElements);
 
-            this.renderExpenses(filteredExpenses);
-            this.updateFilterSummary(filteredExpenses.length);
-
-        } catch (error) {
-            console.error('Error loading expenses:', error);
-            this.showError('Failed to load expenses. Please try again.');
-        } finally {
-            this.showLoading(false);
-        }
+    } catch (error) {
+        console.error('Error loading expenses:', error);
+        this.showError('Failed to load expenses. Please try again.');
+    } finally {
+        this.showLoading(false);
     }
+}
+
+async fetchExpensesFromBackend() {
+    const params = new URLSearchParams({
+        page: this.currentPage,
+        size: this.pageSize,
+        ...(this.filters.search && { search: this.filters.search }),
+        ...(this.filters.category && { category: this.filters.category }),
+        ...(this.filters.dateFrom && { dateFrom: this.filters.dateFrom }),
+        ...(this.filters.dateTo && { dateTo: this.filters.dateTo })
+    });
+
+    const response = await fetch(`${this.baseURL}/all?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch expenses');
+    return await response.json();
+}
+
     /**
      * Fetch all expenses from backend API
      * @returns {Promise<Array>}
      */
-    async fetchAllExpenses() {
-        try {
-            return await app.get('/get'); // or '/api/expense/get' if your backend path includes /api/expense
-        } catch (error) {
-            console.error('Error fetching all expenses:', error);
-            return [];
-        }
-    }
-
+    
     /**
      * Fetch expenses using appropriate backend endpoints based on filters
      * @returns {Promise<Array>} Filtered expenses from backend
-     */
+     
     async fetchFilteredExpenses() {
         const cacheKey = this.generateCacheKey();
 
@@ -229,6 +245,7 @@ class ExpenseManager {
             return [];
         }
     }
+     */
 
     
 

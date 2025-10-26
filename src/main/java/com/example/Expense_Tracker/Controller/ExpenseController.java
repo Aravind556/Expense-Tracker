@@ -2,6 +2,12 @@ package com.example.Expense_Tracker.Controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,6 +41,39 @@ public class ExpenseController {
         Expense createdExpense = expenseService.addExpense(expense);
         return ResponseEntity.ok(createdExpense);
     }
+
+    @GetMapping("/all")
+    ResponseEntity<?> getAllExpensesPaginated(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "5") int size,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String dateFrom,
+        @RequestParam(required = false) String dateTo
+    ) {
+       try {
+        LocalDate fromDate = (dateFrom != null && !dateFrom.isEmpty()) ? LocalDate.parse(dateFrom) : null;
+        LocalDate toDate = (dateTo != null && !dateTo.isEmpty()) ? LocalDate.parse(dateTo) : null;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        String username = expenseService.getCurrentUser().getUsername();
+        Page<Expense> expensesPage = expenseService.getFilteredExpenses(username, search, category, fromDate, toDate, pageable);
+
+        return ResponseEntity.ok(Map.of(
+                "expenses", expensesPage.getContent(),
+                "currentPage", expensesPage.getNumber(),
+                "totalPages", expensesPage.getTotalPages(),
+                "totalElements", expensesPage.getTotalElements()
+        ));
+
+    } catch (Exception e) {
+        return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Failed to fetch expenses", "message", e.getMessage()));
+    }
+    }
+
+
+
     @GetMapping("/{id}")
     public ResponseEntity<Expense> getExpenseById(@PathVariable Long id) {
         Expense expense = expenseService.getExpenseById(id);

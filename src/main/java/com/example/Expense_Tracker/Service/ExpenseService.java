@@ -169,7 +169,12 @@ public class ExpenseService {
         // Convert to Page
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), filteredExpenses.size());
-        List<Expense> pageContent = filteredExpenses.subList(start, end);
+        List<Expense> pageContent;
+        if (start >= filteredExpenses.size()) {
+            pageContent = List.of(); // empty list if page exceeds total results
+        } else {
+            pageContent = filteredExpenses.subList(start, end);
+        }
         
         return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filteredExpenses.size());
     }

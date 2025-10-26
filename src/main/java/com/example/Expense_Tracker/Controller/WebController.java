@@ -70,6 +70,9 @@ public class WebController {
         return "dashboard";
     }
 
+
+    
+
     /**
      * All expenses page with filtering and pagination
      */
