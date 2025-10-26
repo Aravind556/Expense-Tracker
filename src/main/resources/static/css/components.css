@@ -142,6 +142,13 @@
     transform: translateY(-5px);
     box-shadow: 0 8px 25px var(--shadow);
 }
+.quick-filter-btn.active {
+    background-color: var(--light-green);
+    color: #939037;
+    border-color: var(--light-green);
+}
+
+
 
 .stat-icon {
     font-size: 3rem;
