@@ -34,38 +34,50 @@
                             <i class="fas fa-filter"></i>
                             Filter Expenses
                         </h3>
+                        <div class="card-actions">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFilters()">
+                                <i class="fas fa-times"></i>
+                                Clear All
+                            </button>
+                        </div>
                     </div>
-
                     <div class="card-body">
                         <!-- Quick Filter Buttons -->
                         <div class="quick-filters">
                             <label class="filter-label">Quick Filters:</label>
                             <div class="quick-filter-buttons">
-                                <!-- ✅ All are type="button" to prevent unwanted form submission -->
                                 <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="week">
-                                    <i class="fas fa-calendar-week"></i> This Week
+                                    <i class="fas fa-calendar-week"></i>
+                                    This Week
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="month">
-                                    <i class="fas fa-calendar-alt"></i> This Month
+                                    <i class="fas fa-calendar-alt"></i>
+                                    This Month
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="30days">
-                                    <i class="fas fa-calendar-day"></i> Last 30 Days
+                                    <i class="fas fa-calendar-day"></i>
+                                    Last 30 Days
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Filters Form -->
                         <form id="filterForm" class="filters-form">
                             <div class="filter-row">
                                 <!-- Search Input -->
                                 <div class="filter-group">
-                                    <label for="searchText"><i class="fas fa-search"></i> Search</label>
+                                    <label for="searchText">
+                                        <i class="fas fa-search"></i>
+                                        Search
+                                    </label>
                                     <input type="text" id="searchText" name="search" placeholder="Search by description, category, or amount..." class="form-control">
                                 </div>
 
                                 <!-- Category Filter -->
                                 <div class="filter-group">
-                                    <label for="categoryFilter"><i class="fas fa-tag"></i> Category</label>
+                                    <label for="categoryFilter">
+                                        <i class="fas fa-tag"></i>
+                                        Category
+                                    </label>
                                     <select id="categoryFilter" name="category" class="form-control">
                                         <option value="">All Categories</option>
                                         <option value="FOOD">🍕 Food</option>
@@ -79,59 +91,61 @@
                                     </select>
                                 </div>
 
-                                <!-- Date Range -->
+                                <!-- Date Range Filters -->
                                 <div class="filter-group">
-                                    <label for="dateFrom"><i class="fas fa-calendar-plus"></i> From Date</label>
+                                    <label for="dateFrom">
+                                        <i class="fas fa-calendar-plus"></i>
+                                        From Date
+                                    </label>
                                     <input type="date" id="dateFrom" name="dateFrom" class="form-control">
                                 </div>
+
                                 <div class="filter-group">
-                                    <label for="dateTo"><i class="fas fa-calendar-minus"></i> To Date</label>
+                                    <label for="dateTo">
+                                        <i class="fas fa-calendar-minus"></i>
+                                        To Date
+                                    </label>
                                     <input type="date" id="dateTo" name="dateTo" class="form-control">
                                 </div>
 
-                                <!-- Amount Range -->
+                                <!-- Amount Range Filters -->
                                 <div class="filter-group">
-                                    <label for="minAmount"><i class="fas fa-dollar-sign"></i> Min Amount</label>
+                                    <label for="minAmount">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        Min Amount
+                                    </label>
                                     <input type="number" id="minAmount" name="minAmount" placeholder="0.00" step="0.01" min="0" class="form-control">
                                 </div>
+
                                 <div class="filter-group">
-                                    <label for="maxAmount"><i class="fas fa-dollar-sign"></i> Max Amount</label>
+                                    <label for="maxAmount">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        Max Amount
+                                    </label>
                                     <input type="number" id="maxAmount" name="maxAmount" placeholder="0.00" step="0.01" min="0" class="form-control">
                                 </div>
 
-                                <!-- Actions -->
+                                <!-- Filter Actions -->
                                 <div class="filter-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search"></i> Apply Filters
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="window.expenseManager.clearFilters()">
-                                        <i class="fas fa-times"></i> Clear All
+                                        <i class="fas fa-search"></i>
+                                        Apply Filters
                                     </button>
                                 </div>
                             </div>
                         </form>
-
-                        <!-- Active Filters Display -->
-                        <div id="activeFilters" class="active-filters" style="display: none;">
-                            <div class="active-filters-header">
-                                <span class="active-filters-title">Active Filters:</span>
-                                <button type="button" class="btn btn-sm btn-link" onclick="expenseManager.clearFilters()">
-                                    Clear All
-                                </button>
-                            </div>
-                            <div id="activeFiltersList" class="active-filters-list"></div>
-                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Expenses List -->
+            <!-- Expenses Section -->
             <div class="expenses-section">
                 <div class="filter-summary">
                     <div id="filterSummary" class="filter-summary-text">Loading expenses...</div>
                     <div class="filter-summary-actions">
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="expenseManager.loadExpenses()">
-                            <i class="fas fa-sync-alt"></i> Refresh
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
                         </button>
                     </div>
                 </div>
@@ -141,43 +155,30 @@
                     <div class="loading-text">Loading expenses...</div>
                 </div>
 
-                <div id="expensesContainer">
-                    <div th:if="${expenses != null && !expenses.empty}">
-                        <div th:each="expense : ${expenses}" th:replace="~{fragments/cards :: expense-card(expense=${expense})}"></div>
-                    </div>
-
-                    <div th:if="${expenses == null || expenses.empty}" class="empty-state">
-                        <i class="fas fa-receipt empty-icon"></i>
-                        <div class="empty-title">No Expenses Found</div>
-                        <div class="empty-message">
-                            <span th:if="${hasFilters}">Try adjusting your filters or</span>
-                            <span th:unless="${hasFilters}">Start by</span>
-                            <a href="/add-expense" class="empty-link">adding your first expense</a>
-                        </div>
-                    </div>
-                </div>
-
+                <div id="expensesContainer"></div>
                 <div id="paginationContainer" class="pagination-container" style="display: none;"></div>
             </div>
         </div>
     </main>
 
-    <!-- Include Card Styles -->
+    <!-- Styles -->
     <div th:replace="~{fragments/cards :: card-styles}"></div>
 
-    <!-- Styles -->
-    <style>
-        .page-header-content { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; margin-bottom: 2rem; }
-        .page-title { font-size: 2.5rem; color: var(--light-green); display: flex; gap: 1rem; align-items: center; }
-        .filters-section { margin-bottom: 2rem; }
-        .filter-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end; }
-        .filter-actions { display: flex; gap: 0.5rem; }
-        @media (max-width: 1024px) { .filter-row { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 768px) { .filter-row { grid-template-columns: 1fr; } .filter-actions { flex-direction: column; } }
-    </style>
-
-    <!-- Scripts -->
+    <!-- Script -->
     <script th:src="@{/js/expense.js}"></script>
+    <script>
+        // ✅ Keep these helpers only
+        function clearFilters() {
+            if (window.expenseManager) {
+                window.expenseManager.clearFilters();
+            }
+        }
 
+        function changePage(page) {
+            if (window.expenseManager) {
+                window.expenseManager.loadExpenses(page);
+            }
+        }
+    </script>
 </body>
 </html>
