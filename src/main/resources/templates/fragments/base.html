@@ -9,14 +9,21 @@
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <link rel="stylesheet" th:href="@{/css/components.css}">
     
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     
     <!-- Additional CSS -->
     <th:block th:fragment="additional-css"></th:block>
 </head>
 <body>
-    <!-- Loading Overlay -->
+    <!-- Premium Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-content">
             <div class="loading-spinner"></div>
@@ -24,12 +31,12 @@
         </div>
     </div>
 
-    <!-- Alert Container -->
+    <!-- Premium Alert Container -->
     <div id="alertContainer" class="alert-container"></div>
 
     <!-- Main Container -->
     <div class="app-container">
-        <!-- Navigation Fragment -->
+        <!-- Premium Navigation Fragment -->
         <div th:fragment="header" class="main-navigation">
             <nav class="navbar">
                 <div class="nav-container">
@@ -85,5 +92,54 @@
     
     <!-- Additional JavaScript -->
     <th:block th:fragment="additional-js"></th:block>
+
+    <!-- Navigation Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.getElementById('navToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            if (navToggle && navMenu) {
+                navToggle.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                    
+                    // Animate hamburger bars
+                    const bars = navToggle.querySelectorAll('.bar');
+                    bars.forEach((bar, index) => {
+                        if (navMenu.classList.contains('active')) {
+                            if (index === 0) bar.style.transform = 'rotate(45deg) translate(5px, 5px)';
+                            if (index === 1) bar.style.opacity = '0';
+                            if (index === 2) bar.style.transform = 'rotate(-45deg) translate(7px, -6px)';
+                        } else {
+                            bar.style.transform = 'none';
+                            bar.style.opacity = '1';
+                        }
+                    });
+                });
+                
+                // Close menu when clicking on links
+                const navLinks = navMenu.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        navMenu.classList.remove('active');
+                        const bars = navToggle.querySelectorAll('.bar');
+                        bars.forEach(bar => {
+                            bar.style.transform = 'none';
+                            bar.style.opacity = '1';
+                        });
+                    });
+                });
+            }
+            
+            // Set active navigation link based on current page
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

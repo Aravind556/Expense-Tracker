@@ -8,6 +8,9 @@ class ExpenseManager {
         this.cache = new Map();
         this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
         this.isLoading = false; // 🚫 Prevent double calls
+        this.viewMode = 'grid'; // 'grid' or 'list'
+        this.lastData = null;
+        this.deletionInProgress = new Set();
         this.init();
     }
 
@@ -32,18 +35,34 @@ class ExpenseManager {
         // Quick filter buttons
         const quickFilterButtons = document.querySelectorAll('.quick-filter-btn');
         quickFilterButtons.forEach(btn => {
+            // use currentTarget/dataset on the button so clicks on inner nodes (icons) still work
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.applyQuickFilter(e.target.dataset.filter);
+                const filter = (e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.filter) || btn.dataset.filter;
+                this.applyQuickFilter(filter);
             });
         });
 
-        // Category, Date, Search filters (apply manually)
-        const categoryFilter = document.getElementById('categoryFilter');
-        const searchInput = document.getElementById('searchText');
-        const dateFrom = document.getElementById('dateFrom');
-        const dateTo = document.getElementById('dateTo');
+        // View toggle buttons (grid/list)
+        const viewBtns = document.querySelectorAll('.view-btn');
+        if (viewBtns && viewBtns.length) {
+            viewBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const view = (e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.view) || btn.dataset.view;
+                    if (view) this.setViewMode(view);
+                });
+            });
+        }
+
+    // Category, Date, Search filters (apply manually)
+    const categoryFilter = document.getElementById('categoryFilter');
+    // Template uses `searchInput` id
+    const searchInput = document.getElementById('searchInput') || document.getElementById('searchText');
+    // Template uses startDate/endDate ids
+    const dateFrom = document.getElementById('startDate') || document.getElementById('dateFrom');
+    const dateTo = document.getElementById('endDate') || document.getElementById('dateTo');
 
         [categoryFilter, dateFrom, dateTo].forEach(el => {
             if (el) el.addEventListener('change', () => this.applyFilters());
@@ -51,6 +70,7 @@ class ExpenseManager {
 
         if (searchInput) {
             searchInput.addEventListener('input', this.debounce(() => {
+                this.filters.search = searchInput.value;
                 this.applyFilters();
             }, 400));
         }
@@ -61,6 +81,54 @@ class ExpenseManager {
         [minAmount, maxAmount].forEach(el => {
             if (el) el.addEventListener('input', this.debounce(() => this.applyFilters(), 400));
         });
+
+        // Delegated handler for edit/delete buttons inside rendered expense list.
+        // This supports dynamically-rendered cards and server-rendered buttons that use
+        // data attributes like `data-id` or `data-expense-id`.
+        const expensesContainer = document.getElementById('expensesContainer');
+        if (expensesContainer) {
+            expensesContainer.addEventListener('click', (e) => {
+                const editBtn = e.target.closest && e.target.closest('.edit-expense-btn');
+                const delBtn = e.target.closest && e.target.closest('.delete-expense-btn');
+                if (editBtn) {
+                    const id = editBtn.dataset.id || editBtn.dataset.expenseId;
+                    if (id) this.openEditExpense(id);
+                    return;
+                }
+                if (delBtn) {
+                    const id = delBtn.dataset.id || delBtn.dataset.expenseId;
+                    if (id) this.handleDeleteClick(delBtn, id);
+                    return;
+                }
+            });
+        }
+    }
+
+    // Handle delete button click with debounce/guard to prevent duplicate requests
+    handleDeleteClick(button, id) {
+        if (!id) return;
+        // If deletion already in progress for this id, ignore subsequent clicks
+        if (this.deletionInProgress.has(id)) return;
+
+        // Ask for confirmation synchronously first
+        if (!confirm('Delete this expense?')) return;
+
+        try {
+            // mark as in-progress and disable button for feedback
+            this.deletionInProgress.add(id);
+            if (button) button.disabled = true;
+            // call delete and ensure cleanup in finally
+            const p = this.deleteExpense(id);
+            // ensure cleanup even if caller didn't await
+            p.finally(() => {
+                this.deletionInProgress.delete(id);
+                if (button) button.disabled = false;
+            });
+        } catch (err) {
+            // cleanup on synchronous errors
+            this.deletionInProgress.delete(id);
+            if (button) button.disabled = false;
+        }
     }
 
     // Debounce utility
@@ -85,6 +153,8 @@ class ExpenseManager {
 
             const data = await this.fetchExpensesFromBackend();
 
+            // store last fetched data for fast re-render when toggling view
+            this.lastData = data;
             this.renderExpenses(data.expenses);
             this.renderPagination(data.currentPage, data.totalPages);
             this.updateFilterSummary(data.totalElements);
@@ -115,12 +185,128 @@ class ExpenseManager {
             return cached.data;
         }
 
-        const response = await fetch(`${this.baseURL}/all?${params.toString()}`);
-        if (!response.ok) throw new Error('Failed to fetch expenses');
+        // Build headers and include Authorization fallback from localStorage token
+        const headers = {
+            'Accept': 'application/json'
+        };
+        const storedToken = (() => {
+            try { return localStorage.getItem('authToken'); } catch (e) { return null; }
+        })();
+        if (storedToken) {
+            headers['Authorization'] = 'Bearer ' + storedToken;
+        }
 
-        const data = await response.json();
+        // Use the paginated/filter-capable endpoint `/api/expense/all` which accepts
+        // page,size,search,category,dateFrom,dateTo. The older `/get` returns all
+        // expenses without filtering which prevented quick-filters from working.
+        const response = await apiFetch(`${this.baseURL}/all?${params.toString()}`, {
+            method: 'GET',
+            headers
+        });
+        if (!response.ok) {
+            // capture body when possible to help debug 401/403/CORS issues
+            let text = null;
+            try { text = await response.text(); } catch (e) { /* ignore */ }
+            console.error('fetchExpensesFromBackend failed', { status: response.status, body: text });
+            throw new Error('Failed to fetch expenses: ' + response.status);
+        }
+
+        const payload = await response.json();
+
+        // Normalize response: support both array and paginated object
+        let data;
+        if (Array.isArray(payload)) {
+            data = {
+                expenses: payload,
+                currentPage: 0,
+                totalPages: 1,
+                totalElements: payload.length
+            };
+        } else if (payload && Array.isArray(payload.expenses)) {
+            data = payload;
+        } else if (payload && Array.isArray(payload.data)) {
+            // some APIs wrap under `data`
+            data = {
+                expenses: payload.data,
+                currentPage: payload.currentPage || 0,
+                totalPages: payload.totalPages || 1,
+                totalElements: payload.totalElements || payload.data.length
+            };
+        } else {
+            // Unexpected shape — try to coerce
+            data = {
+                expenses: [],
+                currentPage: 0,
+                totalPages: 0,
+                totalElements: 0
+            };
+        }
+
         this.cache.set(cacheKey, { data, timestamp: Date.now() });
+        // also update lastData here in case fetchExpensesFromBackend is used directly
+        this.lastData = data;
         return data;
+    }
+
+    setViewMode(view) {
+        if (!view || (view !== 'grid' && view !== 'list')) return;
+        this.viewMode = view;
+        // toggle active class
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+
+        // re-render using cached data if available
+        if (this.lastData && Array.isArray(this.lastData.expenses)) {
+            this.renderExpenses(this.lastData.expenses);
+            return;
+        }
+
+        // otherwise reload
+        this.loadExpenses(this.currentPage);
+    }
+
+    // Navigate to edit page for given expense id. Keep simple: server `add-expense` accepts ?id=
+    openEditExpense(id) {
+        if (!id) return;
+        window.location.href = `/add-expense?id=${encodeURIComponent(id)}`;
+    }
+
+    // Delete expense by id, remove from UI by reloading the page data on success
+    async deleteExpense(id) {
+        if (!id) return;
+        // Confirmation is handled by caller (handleDeleteClick) to avoid double prompts and
+        // to ensure deletion-in-progress state is managed correctly.
+
+        // headers + auth fallback
+        const headers = { 'Accept': 'application/json' };
+        try {
+            const storedToken = (() => { try { return localStorage.getItem('authToken'); } catch (e) { return null; } })();
+            if (storedToken) headers['Authorization'] = 'Bearer ' + storedToken;
+
+            const res = await apiFetch(`${this.baseURL}/${encodeURIComponent(id)}`, {
+                method: 'DELETE',
+                headers
+            });
+
+            if (!res.ok) {
+                // Try to parse error JSON message from server for a friendlier message
+                let bodyText = null;
+                try {
+                    const json = await res.json();
+                    bodyText = json.message || JSON.stringify(json);
+                } catch (e) {
+                    try { bodyText = await res.text(); } catch (e2) { bodyText = null; }
+                }
+                console.error('deleteExpense failed', { status: res.status, body: bodyText });
+                this.showError(bodyText ? `Delete failed: ${bodyText}` : 'Failed to delete expense.');
+                return;
+            }
+
+            // refresh list (keep current page)
+            this.loadExpenses(this.currentPage);
+        } catch (err) {
+            console.error('deleteExpense error', err);
+            this.showError('Failed to delete expense.');
+        }
     }
 
     /** ────────────────────────────────────────────────────────────────
@@ -128,13 +314,28 @@ class ExpenseManager {
      *  ──────────────────────────────────────────────────────────────── */
     applyFilters() {
         const filterForm = document.getElementById('filterForm');
-        if (!filterForm) return;
-
-        const formData = new FormData(filterForm);
         this.filters = {};
 
-        for (let [key, value] of formData.entries()) {
-            if (value && value.trim()) this.filters[key] = value.trim();
+        if (filterForm) {
+            const formData = new FormData(filterForm);
+            for (let [key, value] of formData.entries()) {
+                if (value && value.trim()) this.filters[key] = value.trim();
+            }
+        } else {
+            // Fallback: gather known inputs directly
+            const searchInput = document.getElementById('searchInput') || document.getElementById('searchText');
+            const category = document.getElementById('categoryFilter');
+            const start = document.getElementById('startDate') || document.getElementById('dateFrom');
+            const end = document.getElementById('endDate') || document.getElementById('dateTo');
+            const minAmount = document.getElementById('minAmount');
+            const maxAmount = document.getElementById('maxAmount');
+
+            if (searchInput && searchInput.value.trim()) this.filters.search = searchInput.value.trim();
+            if (category && category.value) this.filters.category = category.value;
+            if (start && start.value) this.filters.dateFrom = start.value;
+            if (end && end.value) this.filters.dateTo = end.value;
+            if (minAmount && minAmount.value) this.filters.minAmount = minAmount.value;
+            if (maxAmount && maxAmount.value) this.filters.maxAmount = maxAmount.value;
         }
 
         this.clearQuickFilter();
@@ -175,9 +376,9 @@ class ExpenseManager {
             const start = formatDate(startDate);
             const end = formatDate(endDate);
 
-            // Update UI inputs
-            const dateFromInput = document.getElementById('dateFrom');
-            const dateToInput = document.getElementById('dateTo');
+            // Update UI inputs (support both id variants)
+            const dateFromInput = document.getElementById('startDate') || document.getElementById('dateFrom');
+            const dateToInput = document.getElementById('endDate') || document.getElementById('dateTo');
             if (dateFromInput) dateFromInput.value = start;
             if (dateToInput) dateToInput.value = end;
 
@@ -248,7 +449,6 @@ class ExpenseManager {
     renderExpenses(expenses) {
         const container = document.getElementById('expensesContainer');
         if (!container) return;
-
         container.innerHTML = '';
 
         if (!expenses || expenses.length === 0) {
@@ -266,24 +466,63 @@ class ExpenseManager {
             `;
             return;
         }
+        // Use a wrapper that changes layout based on viewMode
+        const wrapper = document.createElement('div');
+        wrapper.className = this.viewMode === 'list' ? 'expenses-list' : 'expenses-grid';
 
         expenses.forEach(expense => {
             const card = document.createElement('div');
             card.classList.add('expense-card');
-            card.innerHTML = `
-                <div class="expense-item">
-                    <div class="expense-header">
-                        <span class="expense-description">${expense.description}</span>
-                        <span class="expense-amount">$${parseFloat(expense.amount).toFixed(2)}</span>
+
+            if (this.viewMode === 'list') {
+                // list: full-width rows with description left and amount right
+                card.innerHTML = `
+                    <div class="expense-item">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                <div class="expense-description">${expense.description || ''}</div>
+                                <div class="expense-date">${expense.category || ''} ${expense.createdAt ? new Date(expense.createdAt).toLocaleDateString() : ''}</div>
+                            </div>
+                            <div class="expense-amount">$${parseFloat(expense.amount).toFixed(2)}</div>
+                        </div>
+                        <div class="expense-actions" style="position:absolute; right:16px; bottom:16px;">
+                            <button class="expense-action-btn edit edit-expense-btn" data-expense-id="${expense.id}" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="expense-action-btn delete delete-expense-btn" data-expense-id="${expense.id}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="expense-meta">
-                        <span>${expense.category}</span>
-                        <span>${new Date(expense.createdAt).toLocaleDateString()}</span>
+                `;
+            } else {
+                // grid: compact card view
+                card.innerHTML = `
+                    <div class="expense-item">
+                        <div class="expense-header">
+                            <span class="expense-description">${expense.description || ''}</span>
+                            <span class="expense-amount">$${parseFloat(expense.amount).toFixed(2)}</span>
+                        </div>
+                        <div class="expense-meta">
+                            <span class="expense-category">${expense.category || ''}</span>
+                            <span class="expense-date">${expense.createdAt ? new Date(expense.createdAt).toLocaleDateString() : ''}</span>
+                        </div>
+                        <div class="expense-actions" style="position:absolute; right:16px; bottom:16px;">
+                            <button class="expense-action-btn edit edit-expense-btn" data-expense-id="${expense.id}" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="expense-action-btn delete delete-expense-btn" data-expense-id="${expense.id}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `;
-            container.appendChild(card);
+                `;
+            }
+
+            wrapper.appendChild(card);
         });
+
+        container.appendChild(wrapper);
     }
 
     renderPagination(currentPage, totalPages) {
@@ -313,6 +552,12 @@ class ExpenseManager {
     }
 
     updateFilterSummary(count) {
+        // Update header counter if present (preferred) and fallback to filterSummary
+        const headerCount = document.getElementById('expensesCount');
+        if (headerCount) {
+            headerCount.textContent = String(count || 0);
+        }
+
         const summaryEl = document.getElementById('filterSummary');
         if (summaryEl) {
             summaryEl.textContent = `Showing ${count} expense${count !== 1 ? 's' : ''}`;

@@ -1,5 +1,8 @@
 package com.example.Expense_Tracker.Controller;
 
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 
@@ -7,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Expense_Tracker.Model.Expense;
@@ -57,14 +61,17 @@ public class DashboardController {
     }
 
     @GetMapping("/monthly-expenses")
-    public ResponseEntity<List<Map<String, Object>>> getMonthlyExpenses() {
-        try {
-            String username = expenseService.getCurrentUser().getUsername();
-            java.time.YearMonth currentMonth = java.time.YearMonth.now();
-            List<Map<String, Object>> monthlyExpenses = (List<Map<String, Object>>) dashboardService.getMonthlyExpenses(username, currentMonth);
-            return ResponseEntity.ok(monthlyExpenses);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> getMonthlyExpenses(Principal principal,
+                                                @RequestParam(value = "months", required = false, defaultValue = "1") int months) {
+        // if months == 1 keep legacy behavior (single BigDecimal) for backward compatibility
+        if (months <= 1) {
+            YearMonth currentMonth = YearMonth.now();
+            BigDecimal monthlyTotal = dashboardService.getMonthlyExpenses(principal.getName(), currentMonth);
+            return ResponseEntity.ok(monthlyTotal);
         }
+
+        // return a list of recent months totals (0 = current month, 1 = previous month, ...)
+        List<Map<String, Object>> list = dashboardService.getMonthlyExpensesList(principal.getName(), months);
+        return ResponseEntity.ok(list);
     }
 }

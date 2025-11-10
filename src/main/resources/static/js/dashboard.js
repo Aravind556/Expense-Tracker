@@ -1,35 +1,39 @@
-// Enhanced Dashboard functionality with interactive features and time period selection
+/**
+ * Royal Blue Premium UI - Enhanced Dashboard Manager
+ * Modern dashboard with animations, charts, and micro-interactions
+ */
+
 class DashboardManager {
     constructor() {
-        this.baseURL = '/api';
-        this.refreshInterval = 300000; // 5 minutes
-        this.refreshTimer = null;
-        this.currentTimePeriod = 'month'; // week, month, quarter, year
-        this.cache = new Map(); // Cache for API responses
-        this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
-        this.charts = {}; // Store chart instances
+        this.cache = new Map();
+        this.refreshInterval = null;
+        this.currentTimePeriod = 'month';
+        this.isLoading = false;
         this.init();
     }
 
-    /**
-     * Initialize dashboard components and event listeners
-     */
     init() {
-        this.loadDashboardData();
-        this.setupAutoRefresh();
         this.setupEventListeners();
-        this.setupTimePeriodSelector();
+        this.initializeAnimations();
+        this.loadDashboardData();
+        this.startAutoRefresh();
     }
 
-    /**
-     * Setup all event listeners for dashboard interactions
-     */
     setupEventListeners() {
+        // Time period selector
+        const timePeriodSelector = document.getElementById('timePeriodSelector');
+        if (timePeriodSelector) {
+            timePeriodSelector.addEventListener('change', (e) => {
+                this.currentTimePeriod = e.target.value;
+                this.loadDashboardData();
+            });
+        }
+
         // Refresh button
         const refreshBtn = document.getElementById('refreshDashboard');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', () => {
-                this.loadDashboardData();
+                this.refreshDashboard();
             });
         }
 
@@ -42,573 +46,426 @@ class DashboardManager {
         }
 
         // Quick action buttons
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.quick-action-btn')) {
-                const btn = e.target.closest('.quick-action-btn');
-                this.handleQuickAction(btn);
-            }
-        });
-
-        // Chart interaction handlers
-        this.setupChartInteractions();
-    }
-
-    /**
-     * Setup time period selector functionality
-     */
-    setupTimePeriodSelector() {
-        const periodSelector = document.getElementById('timePeriodSelector');
-        if (periodSelector) {
-            periodSelector.addEventListener('change', (e) => {
-                this.currentTimePeriod = e.target.value;
-                this.loadDashboardData();
-                this.saveTimePeriodPreference();
+        const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+        quickActionBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.handleQuickAction(e);
             });
+        });
 
-            // Load saved preference
-            this.loadTimePeriodPreference();
-        }
-    }
-
-    /**
-     * Setup chart click interactions
-     */
-    setupChartInteractions() {
-        // Category chart clicks - navigate to filtered expenses
+        // Recent expense items
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.chart-category-item')) {
-                const item = e.target.closest('.chart-category-item');
-                const category = item.dataset.category;
-                if (category) {
-                    this.navigateToFilteredExpenses({ category });
-                }
+            if (e.target.closest('.recent-expense-item')) {
+                this.handleExpenseClick(e.target.closest('.recent-expense-item'));
             }
         });
     }
 
-    /**
-     * Load all dashboard data in parallel for better performance
-     */
+    initializeAnimations() {
+        // Animate statistics cards
+        const statCards = document.querySelectorAll('.stat-card');
+        AnimationUtils.staggerAnimation(statCards, (card) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, 150);
+
+        // Animate dashboard cards
+        const dashboardCards = document.querySelectorAll('.dashboard-card');
+        AnimationUtils.staggerAnimation(dashboardCards, (card) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 200);
+        }, 200);
+
+        // Animate quick action buttons
+        const quickActions = document.querySelectorAll('.quick-action-btn');
+        AnimationUtils.staggerAnimation(quickActions, (btn) => {
+            btn.style.opacity = '0';
+            btn.style.transform = 'scale(0)';
+            btn.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            setTimeout(() => {
+                btn.style.opacity = '1';
+                btn.style.transform = 'scale(1)';
+            }, 50);
+        }, 100);
+    }
+
     async loadDashboardData() {
+        if (this.isLoading) return;
+        
+        this.isLoading = true;
+        LoadingUtils.show();
+        LoadingUtils.setText('Loading dashboard data...');
+
         try {
-            this.showLoading(true);
-            console.log(`Loading dashboard data for period: ${this.currentTimePeriod}`);
-
-            // Calculate date range for current period
-            const dateRange = this.calculateDateRange(this.currentTimePeriod);
-
-            // Load all data in parallel
-            const [stats, recentExpenses, categoryBreakdown, monthlyData] = await Promise.all([
-                this.loadStatistics(dateRange),
+            // Load all dashboard data in parallel
+            const [stats, recentExpenses, categoryData, monthlyData] = await Promise.all([
+                this.loadStatistics(),
                 this.loadRecentExpenses(),
-                this.loadCategoryBreakdown(dateRange),
-                this.loadMonthlyData()
+                this.loadCategoryBreakdown(),
+                this.loadMonthlyTrends()
             ]);
 
-            // Process and display data
-            this.processDashboardData({
-                stats,
-                recentExpenses,
-                categoryBreakdown,
-                monthlyData,
-                dateRange
-            });
-
-            // Update last refresh time
+            // Update UI with animations
+            this.updateStatistics(stats);
+            this.updateRecentExpenses(recentExpenses);
+            this.updateCategoryChart(categoryData);
+            this.updateMonthlyChart(monthlyData);
             this.updateLastRefreshTime();
+
+            // Cache the data
+            this.cache.set('stats', stats);
+            this.cache.set('recentExpenses', recentExpenses);
+            this.cache.set('categoryData', categoryData);
+            this.cache.set('monthlyData', monthlyData);
 
         } catch (error) {
             console.error('Error loading dashboard data:', error);
-            this.showError('Failed to load dashboard data. Please try again.');
+            AlertUtils.error('Failed to load dashboard data. Please try again.');
         } finally {
-            this.showLoading(false);
+            this.isLoading = false;
+            LoadingUtils.hide();
         }
     }
 
-    /**
-     * Calculate date range for the selected time period
-     * @param {string} period - Time period (week, month, quarter, year)
-     * @returns {Object} Date range object with startDate and endDate
-     */
-    calculateDateRange(period) {
-        const now = new Date();
-        const startDate = new Date(now);
-        const endDate = new Date(now);
-
-        switch (period) {
-            case 'week':
-                startDate.setDate(now.getDate() - 7);
-                break;
-            case 'month':
-                startDate.setDate(1); // First day of current month
-                break;
-            case 'quarter':
-                const quarterStart = Math.floor(now.getMonth() / 3) * 3;
-                startDate.setMonth(quarterStart, 1);
-                break;
-            case 'year':
-                startDate.setMonth(0, 1); // January 1st
-                break;
-            default:
-                startDate.setDate(now.getDate() - 30); // Default to 30 days
-        }
-
-        return {
-            startDate: this.formatDateForAPI(startDate),
-            endDate: this.formatDateForAPI(endDate)
-        };
+    async loadStatistics() {
+        const response = await apiFetch(`/api/dashboard/statistics`, { method: 'GET' });
+        if (!response.ok) throw new Error('Failed to load statistics');
+        return await response.json();
     }
 
-    /**
-     * Load dashboard statistics with optional date range
-     * @param {Object} dateRange - Date range object
-     * @returns {Promise<Object>} Statistics data
-     */
-    async loadStatistics(dateRange) {
-        const cacheKey = `stats_${this.currentTimePeriod}`;
-
-        // Check cache first
-        if (this.cache.has(cacheKey)) {
-            const cached = this.cache.get(cacheKey);
-            if (Date.now() - cached.timestamp < this.cacheTimeout) {
-                return cached.data;
-            }
-        }
-
-        try {
-            let stats;
-
-            if (dateRange) {
-                // Use date range filtered data
-                const expenses = await app.get(`/expense/DateRange?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
-                stats = this.calculateStatsFromExpenses(expenses);
-            } else {
-                // Use general stats endpoint
-                stats = await app.get('/dashboard/statistics');
-            }
-
-            // Cache the result
-            this.cache.set(cacheKey, {
-                data: stats,
-                timestamp: Date.now()
-            });
-
-            return stats;
-        } catch (error) {
-            console.error('Error loading statistics:', error);
-            return this.getDefaultStats();
-        }
-    }
-
-    /**
-     * Calculate statistics from expense data
-     * @param {Array} expenses - Array of expenses
-     * @returns {Object} Statistics object
-     */
-    calculateStatsFromExpenses(expenses) {
-        if (!expenses || expenses.length === 0) {
-            return this.getDefaultStats();
-        }
-
-        const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
-        const averageTransaction = totalExpenses / expenses.length;
-
-        return {
-            totalExpenses: totalExpenses,
-            totalTransactions: expenses.length,
-            averageTransaction: averageTransaction,
-            period: this.currentTimePeriod
-        };
-    }
-
-    /**
-     * Get default statistics when no data is available
-     * @returns {Object} Default stats object
-     */
-    getDefaultStats() {
-        return {
-            totalExpenses: 0,
-            totalTransactions: 0,
-            averageTransaction: 0,
-            period: this.currentTimePeriod
-        };
-    }
-
-    /**
-     * Load recent expenses for dashboard display
-     * @returns {Promise<Array>} Recent expenses
-     */
     async loadRecentExpenses() {
-        try {
-            return await app.get('/dashboard/recent-expenses');
-        } catch (error) {
-            console.error('Error loading recent expenses:', error);
-            return [];
+        const response = await apiFetch('/api/dashboard/recent-expenses', { method: 'GET' });
+        if (!response.ok) {
+            let body = null;
+            try { body = await response.text(); } catch (e) { /* ignore */ }
+            console.error('loadRecentExpenses failed', { status: response.status, body });
+            throw new Error('Failed to load recent expenses: ' + (body || response.status));
         }
+        return await response.json();
     }
 
-    /**
-     * Load category breakdown data
-     * @param {Object} dateRange - Date range for filtering
-     * @returns {Promise<Array>} Category breakdown data
-     */
-    async loadCategoryBreakdown(dateRange) {
-        const cacheKey = `categories_${this.currentTimePeriod}`;
+    async loadCategoryBreakdown() {
+        const response = await apiFetch(`/api/dashboard/category-breakdown`, { method: 'GET' });
+        if (!response.ok) throw new Error('Failed to load category breakdown');
+        return await response.json();
+    }
 
-        // Check cache first
-        if (this.cache.has(cacheKey)) {
-            const cached = this.cache.get(cacheKey);
-            if (Date.now() - cached.timestamp < this.cacheTimeout) {
-                return cached.data;
-            }
-        }
+    async loadMonthlyTrends() {
+        // Request the last 6 months by default so the dashboard shows a trend
+        const response = await apiFetch(`/api/dashboard/monthly-expenses?months=6`, { method: 'GET' });
+        if (!response.ok) throw new Error('Failed to load monthly trends');
+        return await response.json();
+    }
 
-        try {
-            let breakdown;
+    updateStatistics(stats) {
+        // Animate counter values
+        this.animateCounter('totalExpenses', stats.totalExpenses, '$');
+        this.animateCounter('totalTransactions', stats.totalTransactions, '');
+        this.animateCounter('averageTransaction', stats.averageTransaction, '$');
 
-            if (dateRange) {
-                // Calculate breakdown from date-filtered expenses
-                const expenses = await app.get(`/expense/DateRange?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
-                breakdown = this.calculateCategoryBreakdown(expenses);
+        // Update trends with animations (using mock data since backend doesn't provide trends)
+        this.updateTrend('totalExpenses', 5.2);
+        this.updateTrend('totalTransactions', -2.1);
+        this.updateTrend('averageTransaction', 8.7);
+    }
+
+    animateCounter(elementId, targetValue, prefix = '') {
+        // Update only the inner .stat-value element so we don't remove headings/labels
+        const card = document.getElementById(elementId);
+        if (!card) return;
+        const valueEl = card.querySelector('.stat-value');
+        if (!valueEl) return;
+
+        const startValue = 0;
+        const duration = 1500;
+        const startTime = performance.now();
+
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Easing function for smooth animation
+            const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+            const currentValue = startValue + (targetValue - startValue) * easeOutCubic;
+
+            if (prefix === '$') {
+                valueEl.textContent = Utils.formatCurrency(currentValue);
             } else {
-                // Use dashboard endpoint
-                breakdown = await app.get('/dashboard/category-breakdown');
+                valueEl.textContent = Math.round(currentValue).toLocaleString();
             }
 
-            // Cache the result
-            this.cache.set(cacheKey, {
-                data: breakdown,
-                timestamp: Date.now()
-            });
-
-            return breakdown;
-        } catch (error) {
-            console.error('Error loading category breakdown:', error);
-            return [];
-        }
-    }
-
-    /**
-     * Calculate category breakdown from expenses
-     * @param {Array} expenses - Array of expenses
-     * @returns {Array} Category breakdown data
-     */
-    calculateCategoryBreakdown(expenses) {
-        if (!expenses || expenses.length === 0) {
-            return [];
-        }
-
-        const categoryTotals = {};
-        let totalAmount = 0;
-
-        // Calculate totals by category
-        expenses.forEach(expense => {
-            const category = expense.category || 'OTHER';
-            const amount = parseFloat(expense.amount || 0);
-
-            categoryTotals[category] = (categoryTotals[category] || 0) + amount;
-            totalAmount += amount;
-        });
-
-        // Convert to percentage breakdown
-        return Object.entries(categoryTotals).map(([category, amount]) => ({
-            name: this.getCategoryDisplayName(category),
-            category: category,
-            amount: amount,
-            percentage: totalAmount > 0 ? (amount / totalAmount) * 100 : 0
-        })).sort((a, b) => b.amount - a.amount);
-    }
-
-    /**
-     * Get display name for category
-     * @param {string} category - Category code
-     * @returns {string} Display name
-     */
-    getCategoryDisplayName(category) {
-        const displayNames = {
-            'FOOD': 'Food',
-            'TRANSPORTATION': 'Transportation',
-            'ENTERTAINMENT': 'Entertainment',
-            'UTILITIES': 'Utilities',
-            'HEALTHCARE': 'Healthcare',
-            'SHOPPING': 'Shopping',
-            'EDUCATION': 'Education',
-            'OTHER': 'Other'
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
         };
-        return displayNames[category] || category;
+
+        requestAnimationFrame(animate);
     }
 
-    /**
-     * Load monthly trend data for charts
-     * @returns {Promise<Array>} Monthly data
-     */
-    async loadMonthlyData() {
-        try {
-            // This would ideally use a backend endpoint for monthly trends
-            // For now, we'll calculate from available data
-            const currentDate = new Date();
-            const monthlyData = [];
+    updateTrend(elementId, trend) {
+        const statCard = document.getElementById(elementId);
+        if (!statCard) return;
 
-            // Generate last 6 months of data
-            for (let i = 5; i >= 0; i--) {
-                const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-                const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const trendElement = statCard.querySelector('.stat-trend');
+        if (!trendElement) return;
 
-                // In a real implementation, this would call a backend endpoint
-                // For now, we'll use placeholder data
-                monthlyData.push({
-                    month: monthName,
-                    amount: Math.random() * 1000 + 500, // Placeholder
-                    transactions: Math.floor(Math.random() * 20) + 5
-                });
-            }
+        const icon = trendElement.querySelector('i');
+        const span = trendElement.querySelector('span');
 
-            return monthlyData;
-        } catch (error) {
-            console.error('Error loading monthly data:', error);
-            return [];
-        }
-    }
-
-    /**
-     * Process and display dashboard data
-     * @param {Object} data - Dashboard data object
-     */
-    processDashboardData(data) {
-        // Update statistics cards
-        this.updateStatisticsCards(data.stats);
-
-        // Update recent expenses
-        this.updateRecentExpenses(data.recentExpenses);
-
-        // Update category breakdown chart
-        this.updateCategoryChart(data.categoryBreakdown);
-
-        // Update monthly trend chart
-        this.updateMonthlyChart(data.monthlyData);
-
-        // Calculate and show trends
-        this.calculateAndShowTrends(data);
-    }
-
-    /**
-     * Update statistics cards with trend indicators
-     * @param {Object} stats - Statistics data
-     */
-    updateStatisticsCards(stats) {
-        // Update total expenses
-        this.updateStatCard('totalExpenses', stats.totalExpenses, 'Total Expenses');
-
-        // Update transaction count
-        this.updateStatCard('totalTransactions', stats.totalTransactions, 'Transactions');
-
-        // Update average transaction
-        this.updateStatCard('averageTransaction', stats.averageTransaction, 'Average Transaction');
-    }
-
-    /**
-     * Update individual statistic card
-     * @param {string} cardId - Card element ID
-     * @param {number} value - Value to display
-     * @param {string} label - Card label
-     */
-    updateStatCard(cardId, value, label) {
-        const card = document.getElementById(cardId);
-        if (card) {
-            const valueEl = card.querySelector('.stat-value');
-            const labelEl = card.querySelector('.stat-label');
-
-            if (valueEl) {
-                // Format currency values
-                if (cardId.includes('Expenses') || cardId.includes('Transaction')) {
-                    valueEl.textContent = this.formatCurrency(value);
+        if (trend > 0) {
+            trendElement.classList.add('positive');
+            trendElement.classList.remove('negative');
+            icon.className = 'fas fa-arrow-up';
+            span.textContent = `+${trend.toFixed(1)}%`;
                 } else {
-                    valueEl.textContent = value.toLocaleString();
-                }
-            }
-
-            if (labelEl) {
-                labelEl.textContent = label;
-            }
+            trendElement.classList.add('negative');
+            trendElement.classList.remove('positive');
+            icon.className = 'fas fa-arrow-down';
+            span.textContent = `${trend.toFixed(1)}%`;
         }
+
+        // Animate trend appearance
+        AnimationUtils.scaleIn(trendElement, 300);
     }
 
-    /**
-     * Update recent expenses display
-     * @param {Array} expenses - Recent expenses array
-     */
     updateRecentExpenses(expenses) {
         const container = document.getElementById('recentExpensesList');
         if (!container) return;
 
-        if (!expenses || expenses.length === 0) {
-            container.innerHTML = '<div class="no-data">No recent expenses</div>';
+        if (expenses.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="empty-title">No Recent Expenses</div>
+                    <div class="empty-message">Start adding expenses to see them here</div>
+                </div>
+            `;
             return;
         }
 
-        container.innerHTML = expenses.slice(0, 5).map(expense => `
-            <div class="recent-expense-item" onclick="dashboardManager.navigateToExpense(${expense.id})">
+        const expensesHTML = expenses.map(expense => `
+            <div class="recent-expense-item" data-expense-id="${expense.id}">
                 <div class="expense-info">
-                    <div class="expense-description">${this.escapeHtml(expense.description || 'No description')}</div>
+                    <div class="expense-description">${expense.description}</div>
                     <div class="expense-meta">
-                        <span class="expense-category">${this.getCategoryDisplayName(expense.category)}</span>
-                        <span class="expense-date">${this.formatDate(expense.createdAt)}</span>
+                        <div class="expense-category">
+                            <i class="fas fa-${Utils.getCategoryIcon(expense.category)}"></i>
+                            ${Utils.getCategoryDisplayName(expense.category)}
+                        </div>
+                        <div class="expense-date">
+                            <i class="fas fa-calendar"></i>
+                            ${Utils.formatDate(expense.createdAt)}
+                        </div>
                     </div>
                 </div>
-                <div class="expense-amount">${this.formatCurrency(expense.amount)}</div>
+                <div class="expense-amount">${Utils.formatCurrency(expense.amount)}</div>
             </div>
         `).join('');
+
+        container.innerHTML = expensesHTML;
+
+        // Animate expense items
+        const expenseItems = container.querySelectorAll('.recent-expense-item');
+        AnimationUtils.staggerAnimation(expenseItems, (item) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+            item.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            setTimeout(() => {
+                item.style.opacity = '1';
+                item.style.transform = 'translateX(0)';
+            }, 50);
+        }, 100);
     }
 
-    /**
-     * Update category breakdown chart
-     * @param {Array} categories - Category data array
-     */
-    updateCategoryChart(categories) {
-        const chartContainer = document.getElementById('categoryChart');
-        if (!chartContainer) return;
+    updateCategoryChart(categoryData) {
+        const container = document.getElementById('categoryChart');
+        if (!container) return;
 
-        if (!categories || categories.length === 0) {
-            chartContainer.innerHTML = '<div class="no-data">No category data available</div>';
-            return;
-        }
-
-        // Create interactive category list
-        chartContainer.innerHTML = `
-            <div class="category-breakdown">
-                ${categories.map(cat => `
-                    <div class="category-item chart-category-item" data-category="${cat.category}">
-                        <div class="category-info">
-                            <div class="category-name">${cat.name}</div>
-                            <div class="category-percentage">${cat.percentage.toFixed(1)}%</div>
-                        </div>
-                        <div class="category-amount">${this.formatCurrency(cat.amount)}</div>
-                        <div class="category-bar">
-                            <div class="category-bar-fill" style="width: ${cat.percentage}%"></div>
-                        </div>
+        if (categoryData.length === 0) {
+            container.innerHTML = `
+                <div class="chart-placeholder">
+                    <div class="chart-placeholder-icon">
+                        <i class="fas fa-chart-pie"></i>
                     </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    /**
-     * Update monthly trend chart
-     * @param {Array} monthlyData - Monthly data array
-     */
-    updateMonthlyChart(monthlyData) {
-        const chartContainer = document.getElementById('monthlyChart');
-        if (!chartContainer) return;
-
-        if (!monthlyData || monthlyData.length === 0) {
-            chartContainer.innerHTML = '<div class="no-data">No trend data available</div>';
+                    <div class="chart-placeholder-text">
+                        <h4>No Category Data</h4>
+                        <p>Add some expenses to see category breakdown</p>
+                    </div>
+                </div>
+            `;
             return;
         }
 
-        // Simple bar chart representation
-        const maxAmount = Math.max(...monthlyData.map(d => d.amount));
-
-        chartContainer.innerHTML = `
-            <div class="monthly-trend-chart">
-                ${monthlyData.map(data => `
-                    <div class="month-bar">
-                        <div class="bar-container">
-                            <div class="bar-fill" style="height: ${(data.amount / maxAmount) * 100}%">
-                                <span class="bar-value">${this.formatCurrency(data.amount)}</span>
+        // Create simple category breakdown visualization
+        const totalAmount = categoryData.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+        
+        const chartHTML = `
+            <div class="category-cards">
+                ${categoryData.map(item => {
+                     return `
+                        <div class="category-card card">
+                            <div class="card-body">
+                                <div class="category-center">
+                                    <div class="category-name">${Utils.getCategoryDisplayName(item.category)}</div>
+                                    <div class="category-amount">${Utils.formatCurrency(item.amount)}</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="month-label">${data.month}</div>
-                    </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         `;
+
+        container.innerHTML = chartHTML;
+
+        // Simple entrance animation for the new cards
+        const cards = container.querySelectorAll('.category-card');
+        AnimationUtils.staggerAnimation(cards, (card) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(10px)';
+            card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        }, 120);
     }
 
-    /**
-     * Calculate and show trend indicators
-     * @param {Object} data - Dashboard data
-     */
-    calculateAndShowTrends(data) {
-        // Calculate trends compared to previous period
-        const trends = this.calculateTrends(data);
+    updateMonthlyChart(monthlyData) {
+        const container = document.getElementById('monthlyChart');
+        if (!container) return;
+        // Backend may return either a single numeric amount (legacy) or an array of {label, amount}
+        if (!monthlyData) {
+            container.innerHTML = `
+                <div class="chart-placeholder">
+                    <div class="chart-placeholder-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="chart-placeholder-text">
+                        <h4>No Monthly Data</h4>
+                        <p>Add some expenses to see monthly trends</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
 
-        // Update trend indicators in stat cards
-        this.updateTrendIndicators(trends);
+        // If backend returned an array of months, render each as a small card (trend)
+        if (Array.isArray(monthlyData)) {
+            const cardsHTML = monthlyData.map(item => `
+                <div class="monthly-card card">
+                    <div class="card-body">
+                        <div class="monthly-card-content">
+                            <div class="monthly-card-month">${item.label}</div>
+                            <div class="monthly-card-amount">${Utils.formatCurrency(item.amount)}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `<div class="monthly-cards">${cardsHTML}</div>`;
+            // Simple entrance animation
+            const cards = container.querySelectorAll('.monthly-card');
+            AnimationUtils.staggerAnimation(cards, (card) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(8px)';
+                card.style.transition = 'all 0.45s cubic-bezier(0.4, 0, 0.2, 1)';
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 40);
+            }, 80);
+            return;
+        }
+
+        // Legacy single-value response (number or string)
+        const currentMonthAmount = parseFloat(monthlyData) || 0;
+
+        if (currentMonthAmount === 0) {
+            container.innerHTML = `
+                <div class="chart-placeholder">
+                    <div class="chart-placeholder-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="chart-placeholder-text">
+                        <h4>No Monthly Data</h4>
+                        <p>Add some expenses to see monthly trends</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // Format current month label
+        const currentMonth = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+        // Render as a single card so it matches other dashboard items
+        const chartHTML = `
+            <div class="monthly-cards">
+                <div class="monthly-card card">
+                    <div class="card-body">
+                        <div class="monthly-card-content">
+                            <div class="monthly-card-month">${currentMonth}</div>
+                            <div class="monthly-card-amount">${Utils.formatCurrency(currentMonthAmount)}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = chartHTML;
     }
 
-    /**
-     * Calculate trends for different metrics
-     * @param {Object} data - Dashboard data
-     * @returns {Object} Trends object
-     */
-    calculateTrends(data) {
-        // This is a simplified trend calculation
-        // In a real implementation, you'd compare with previous period data
-        return {
-            totalExpenses: { change: 5.2, direction: 'up' },
-            transactions: { change: -2.1, direction: 'down' },
-            averageTransaction: { change: 8.7, direction: 'up' }
-        };
+    updateLastRefreshTime() {
+        const lastRefreshElement = document.getElementById('lastRefreshTime');
+        if (lastRefreshElement) {
+            lastRefreshElement.textContent = new Date().toLocaleTimeString();
+        }
     }
 
-    /**
-     * Update trend indicators in stat cards
-     * @param {Object} trends - Trends data
-     */
-    updateTrendIndicators(trends) {
-        // Add trend indicators to stat cards
-        Object.entries(trends).forEach(([metric, trend]) => {
-            const card = document.querySelector(`#${metric}`);
-            if (card) {
-                const trendEl = card.querySelector('.trend-indicator') || document.createElement('div');
-                trendEl.className = `trend-indicator trend-${trend.direction}`;
-                trendEl.innerHTML = `
-                    <i class="fas fa-arrow-${trend.direction}"></i>
-                    ${Math.abs(trend.change)}%
-                `;
+    async refreshDashboard() {
+        const refreshBtn = document.getElementById('refreshDashboard');
+        if (refreshBtn) {
+            ButtonUtils.setLoading(refreshBtn, true);
+        }
 
-                if (!card.querySelector('.trend-indicator')) {
-                    card.appendChild(trendEl);
-                }
+        try {
+            await this.loadDashboardData();
+            AlertUtils.success('Dashboard refreshed successfully!');
+        } catch (error) {
+            AlertUtils.error('Failed to refresh dashboard');
+        } finally {
+            if (refreshBtn) {
+                ButtonUtils.setLoading(refreshBtn, false);
             }
-        });
+        }
     }
 
-    /**
-     * Navigate to filtered expenses page
-     * @param {Object} filters - Filter parameters
-     */
-    navigateToFilteredExpenses(filters) {
-        const params = new URLSearchParams();
-
-        if (filters.category) {
-            params.set('category', filters.category);
-        }
-        if (filters.dateFrom) {
-            params.set('dateFrom', filters.dateFrom);
-        }
-        if (filters.dateTo) {
-            params.set('dateTo', filters.dateTo);
-        }
-
-        const url = `/expenses${params.toString() ? '?' + params.toString() : ''}`;
-        window.location.href = url;
+    async exportData() {
+        AlertUtils.info('Export functionality will be available soon!');
     }
 
-    /**
-     * Navigate to specific expense details
-     * @param {number} expenseId - Expense ID
-     */
-    navigateToExpense(expenseId) {
-        window.location.href = `/expenses/${expenseId}`;
-    }
-
-    /**
-     * Handle quick action button clicks
-     * @param {HTMLElement} btn - Button element
-     */
-    handleQuickAction(btn) {
-        const action = btn.dataset.action;
+    handleQuickAction(event) {
+        const action = event.currentTarget.dataset.action;
+        
+        // Add ripple effect
+        ButtonUtils.createRipple(event, event.currentTarget);
 
         switch (action) {
             case 'add-expense':
@@ -620,238 +477,44 @@ class DashboardManager {
             case 'export-data':
                 this.exportData();
                 break;
-            default:
-                console.log('Unknown action:', action);
         }
     }
 
-    /**
-     * Export dashboard data
-     */
-    async exportData() {
-        try {
-            // Create CSV content from current dashboard data
-            const data = await this.getCurrentDashboardData();
-            const csv = this.convertToCSV(data);
-
-            // Download CSV file
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `dashboard-export-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-
-            this.showSuccess('Data exported successfully!');
-        } catch (error) {
-            console.error('Export failed:', error);
-            this.showError('Failed to export data');
+    handleExpenseClick(expenseItem) {
+        const expenseId = expenseItem.dataset.expenseId;
+        if (expenseId) {
+            // Add click animation
+            AnimationUtils.scaleIn(expenseItem, 200);
+            
+            // Navigate to expense details or edit page
+            window.location.href = `/expenses?id=${expenseId}`;
         }
     }
 
-    /**
-     * Get current dashboard data for export
-     * @returns {Promise<Object>} Dashboard data
-     */
-    async getCurrentDashboardData() {
-        // This would gather all current dashboard data
-        return {
-            period: this.currentTimePeriod,
-            exportDate: new Date().toISOString(),
-            // Add actual data here
-        };
-    }
-
-    /**
-     * Convert data to CSV format
-     * @param {Object} data - Data to convert
-     * @returns {string} CSV string
-     */
-    convertToCSV(data) {
-        // Simple CSV conversion - enhance as needed
-        return 'Period,Export Date\n' +
-               `${data.period},${data.exportDate}\n`;
-    }
-
-    /**
-     * Setup auto-refresh functionality
-     */
-    setupAutoRefresh() {
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
-        }
-
-        this.refreshTimer = setInterval(() => {
+    startAutoRefresh() {
+        // Refresh dashboard every 5 minutes
+        this.refreshInterval = setInterval(() => {
             this.loadDashboardData();
-        }, this.refreshInterval);
+        }, 5 * 60 * 1000);
     }
 
-    /**
-     * Save time period preference to localStorage
-     */
-    saveTimePeriodPreference() {
-        try {
-            localStorage.setItem('dashboardTimePeriod', this.currentTimePeriod);
-        } catch (error) {
-            console.warn('Could not save time period preference:', error);
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
         }
     }
 
-    /**
-     * Load time period preference from localStorage
-     */
-    loadTimePeriodPreference() {
-        try {
-            const saved = localStorage.getItem('dashboardTimePeriod');
-            if (saved && ['week', 'month', 'quarter', 'year'].includes(saved)) {
-                this.currentTimePeriod = saved;
-                const selector = document.getElementById('timePeriodSelector');
-                if (selector) {
-                    selector.value = saved;
-                }
-            }
-        } catch (error) {
-            console.warn('Could not load time period preference:', error);
-        }
-    }
-
-    /**
-     * Update last refresh time display
-     */
-    updateLastRefreshTime() {
-        const refreshTimeEl = document.getElementById('lastRefreshTime');
-        if (refreshTimeEl) {
-            refreshTimeEl.textContent = new Date().toLocaleTimeString();
-        }
-    }
-
-    /**
-     * Format date for API calls
-     * @param {Date} date - Date to format
-     * @returns {string} Formatted date string
-     */
-    formatDateForAPI(date) {
-        return date.toISOString().split('T')[0];
-    }
-
-    /**
-     * Format date for display
-     * @param {string|Date} date - Date to format
-     * @returns {string} Formatted date string
-     */
-    formatDate(date) {
-        if (!date) return '';
-        const d = new Date(date);
-        return d.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    }
-
-    /**
-     * Format currency value
-     * @param {number} amount - Amount to format
-     * @returns {string} Formatted currency string
-     */
-    formatCurrency(amount) {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD'
-        }).format(amount || 0);
-    }
-
-    /**
-     * Escape HTML to prevent XSS
-     * @param {string} text - Text to escape
-     * @returns {string} Escaped text
-     */
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    /**
-     * Show loading state
-     * @param {boolean} show - Whether to show loading
-     */
-    showLoading(show) {
-        if (typeof app !== 'undefined' && app.showLoading) {
-            app.showLoading(show);
-        }
-    }
-
-    /**
-     * Show error message
-     * @param {string} message - Error message
-     */
-    showError(message) {
-        if (typeof app !== 'undefined' && app.showAlert) {
-            app.showAlert(message, 'error');
-        } else {
-            alert(message);
-        }
-    }
-
-    /**
-     * Show success message
-     * @param {string} message - Success message
-     */
-    showSuccess(message) {
-        if (typeof app !== 'undefined' && app.showAlert) {
-            app.showAlert(message, 'success');
-        } else {
-            alert(message);
-        }
-    }
-
-    /**
-     * Clear all caches
-     */
-    clearCache() {
+    destroy() {
+        this.stopAutoRefresh();
         this.cache.clear();
     }
-
-    /**
-     * Destroy dashboard manager and cleanup
-     */
-    destroy() {
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
-        }
-        this.clearCache();
-    }
 }
 
-// Global functions for template usage
-function exportExpenses() {
-    if (window.dashboardManager) {
-        window.dashboardManager.exportData();
-    }
-}
-
-function refreshDashboard() {
-    if (window.dashboardManager) {
-        window.dashboardManager.loadDashboardData();
-    }
-}
-
-// Initialize dashboard manager when DOM is loaded
+// Initialize DashboardManager when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Only initialize on dashboard page
-    if (window.location.pathname.includes('/dashboard') || document.querySelector('.stats-grid')) {
-        // Wait for app.js to be available
-        const initDashboard = () => {
-            if (typeof app !== 'undefined') {
+    if (document.querySelector('.dashboard-grid')) {
                 window.dashboardManager = new DashboardManager();
-            } else {
-                // Try again after a short delay
-                setTimeout(initDashboard, 100);
-            }
-        };
-        initDashboard();
     }
 });
 
@@ -861,6 +524,3 @@ window.addEventListener('beforeunload', function() {
         window.dashboardManager.destroy();
     }
 });
-
-// Export for other modules
-window.DashboardManager = DashboardManager;

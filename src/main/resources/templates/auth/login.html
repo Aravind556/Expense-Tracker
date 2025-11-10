@@ -5,47 +5,66 @@
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
                 <h1 class="auth-title">Welcome Back</h1>
-                <p class="auth-subtitle">Sign in to your account to continue</p>
+                <p class="auth-subtitle">Sign in to your account to continue tracking expenses</p>
             </div>
             
-            <!-- Login Form -->
-            <form id="loginForm" onsubmit="handleLogin(event)">
+            <!-- Premium Login Form -->
+            <form id="loginForm">
                 <!-- Username Field -->
-                <div th:replace="~{fragments/forms :: input-with-icon(
-                    id='username', 
-                    name='username', 
-                    label='Username', 
-                    type='text', 
-                    placeholder='Enter your username', 
-                    value='', 
-                    icon='user', 
-                    required=true
-                )}"></div>
-                
-                <!-- Password Field -->
-                <div th:replace="~{fragments/forms :: input-with-icon(
-                    id='password', 
-                    name='password', 
-                    label='Password', 
-                    type='password', 
-                    placeholder='Enter your password', 
-                    value='', 
-                    icon='lock', 
-                    required=true
-                )}"></div>
-                
-                <!-- Remember Me -->
                 <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="rememberMe" name="rememberMe">
-                        <span class="checkmark"></span>
-                        Remember me
+                    <label for="username" class="form-label">
+                        <i class="fas fa-user"></i>
+                        Username
                     </label>
+                    <div class="input-group">
+                        <input type="text" 
+                               id="username" 
+                               name="username" 
+                               class="form-control" 
+                               placeholder="Enter your username"
+                               required
+                               autocomplete="username">
+                        <div class="input-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
                 </div>
                 
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <div class="input-group">
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               class="form-control" 
+                               placeholder="Enter your password"
+                               required
+                               autocomplete="current-password">
+                        <div class="input-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+    
                 <!-- Submit Button -->
-                <div th:replace="~{fragments/forms :: loading-button(text='Sign In', loadingText='Signing In...')}"></div>
+                <button type="submit" id="submitBtn" class="btn btn-primary btn-block btn-lg">
+                    <span class="btn-text">Sign In</span>
+                    <span class="btn-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Signing In...
+                    </span>
+                </button>
             </form>
             
             <!-- Auth Footer -->
@@ -53,84 +72,250 @@
                 <p>Don't have an account? 
                     <a href="/register" class="auth-link">Create one here</a>
                 </p>
+                <div class="auth-divider">
+                    <span>or</span>
+                </div>
+                <a href="#" class="forgot-password-link">Forgot your password?</a>
             </div>
         </div>
     </div>
     
-    <!-- Include Form Styles -->
-    <div th:replace="~{fragments/forms :: form-styles}"></div>
-    
-    <!-- Custom Styles for Login -->
+    <!-- Premium Styles for Login -->
     <style>
+        .auth-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, 
+                var(--royal-blue-600), 
+                var(--royal-gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            box-shadow: 
+                0 8px 32px rgba(30, 58, 138, 0.3),
+                0 4px 16px rgba(30, 58, 138, 0.2);
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+        
+        .auth-icon i {
+            font-size: var(--font-size-3xl);
+            color: white;
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-label i {
+            color: var(--royal-blue-400);
+            width: 16px;
+        }
+        
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group .form-control {
+            padding-right: 60px;
+            padding-left: 50px;
+            height: 56px;
+            font-size: var(--font-size-lg);
+            border-radius: var(--border-radius-lg);
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            transition: var(--transition);
+        }
+        
+        .input-group .form-control:focus {
+            border-color: var(--royal-blue-500);
+            box-shadow: 
+                0 0 0 4px rgba(59, 130, 246, 0.2),
+                0 8px 24px rgba(30, 58, 138, 0.15);
+            background: rgba(15, 23, 42, 0.95);
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            color: var(--royal-blue-400);
+            font-size: var(--font-size-lg);
+            z-index: 2;
+            transition: var(--transition);
+        }
+        
+        .input-group .form-control:focus + .input-icon {
+            color: var(--royal-blue-300);
+            transform: scale(1.1);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            background: none;
+            border: none;
+            color: var(--royal-blue-400);
+            cursor: pointer;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+            z-index: 2;
+        }
+        
+        .password-toggle:hover {
+            color: var(--royal-blue-300);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
         .checkbox-label {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: var(--spacing-md);
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: var(--font-size-base);
             color: var(--text-primary);
             user-select: none;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            transition: var(--transition);
+        }
+        
+        .checkbox-label:hover {
+            background: rgba(59, 130, 246, 0.05);
         }
         
         .checkbox-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--light-green);
+            width: 20px;
+            height: 20px;
+            accent-color: var(--royal-blue-500);
             cursor: pointer;
+            border-radius: var(--border-radius-sm);
         }
         
-        .auth-container {
-            background: linear-gradient(135deg, 
-                var(--dark-grey) 0%, 
-                var(--medium-grey) 50%, 
-                var(--dark-grey) 100%);
-            background-attachment: fixed;
+        .checkbox-text {
+            font-weight: 500;
+        }
+        
+        .btn {
+            height: 56px;
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: var(--border-radius-lg);
             position: relative;
+            overflow: hidden;
         }
         
-        .auth-container::before {
+        .btn::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234a7c59' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.3;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
         
-        .auth-card {
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-loading {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .auth-divider {
             position: relative;
-            z-index: 2;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(74, 124, 89, 0.2);
+            text-align: center;
+            margin: var(--spacing-lg) 0;
         }
         
-        .auth-card::before {
+        .auth-divider::before {
             content: '';
             position: absolute;
-            top: 0;
+            top: 50%;
             left: 0;
             right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, 
-                rgba(45, 102, 80, 0.1) 0%, 
-                rgba(26, 77, 58, 0.1) 100%);
-            border-radius: 16px;
-            z-index: -1;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(59, 130, 246, 0.3), 
+                transparent);
         }
         
+        .auth-divider span {
+            background: var(--royal-gray-800);
+            padding: 0 var(--spacing-md);
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .forgot-password-link {
+            color: var(--royal-blue-400);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            font-size: var(--font-size-sm);
+        }
+        
+        .forgot-password-link:hover {
+            color: var(--royal-gold);
+            text-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+        }
+        
+        /* Mobile Responsive */
         @media (max-width: 480px) {
-            .auth-container {
-                padding: 1rem;
-            }
-            
             .auth-card {
-                padding: 2rem 1.5rem;
+                padding: var(--spacing-xl) var(--spacing-lg);
+                margin: var(--spacing-sm);
             }
             
             .auth-title {
-                font-size: 1.8rem;
+                font-size: var(--font-size-3xl);
+            }
+            
+            .auth-icon {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .auth-icon i {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .input-group .form-control {
+                height: 50px;
+                font-size: var(--font-size-base);
+            }
+            
+            .btn {
+                height: 50px;
+                font-size: var(--font-size-base);
             }
         }
     </style>
@@ -141,11 +326,19 @@
     <script>
         // Initialize login page
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize AuthManager
-            new AuthManager();
+            // AuthManager is initialized by /js/auth.js; keep page script focused on UI behaviors only
             
-            // Focus on username field
-            document.getElementById('username').focus();
+            // Focus on username field with animation
+            setTimeout(() => {
+                const usernameField = document.getElementById('username');
+                if (usernameField) {
+                    usernameField.focus();
+                    usernameField.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        usernameField.style.transform = 'scale(1)';
+                    }, 200);
+                }
+            }, 300);
             
             // Add enter key handler
             document.addEventListener('keypress', function(e) {
@@ -156,7 +349,34 @@
                     }
                 }
             });
+            
+            // Add input animations
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+            });
         });
+        
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
     </script>
 </body>
 </html>

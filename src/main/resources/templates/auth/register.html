@@ -5,64 +5,128 @@
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
                 <h1 class="auth-title">Create Account</h1>
-                <p class="auth-subtitle">Join us to start tracking your expenses</p>
+                <p class="auth-subtitle">Join us to start tracking your expenses efficiently</p>
             </div>
             
-            <!-- Registration Form -->
-            <form id="registerForm" onsubmit="handleRegister(event)">
+            <!-- Premium Registration Form -->
+            <form id="registerForm">
                 <!-- Username Field -->
-                <div th:replace="~{fragments/forms :: input-with-icon(
-                    id='username', 
-                    name='username', 
-                    label='Username', 
-                    type='text', 
-                    placeholder='Choose a username', 
-                    value='', 
-                    icon='user', 
-                    required=true
-                )}"></div>
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-user"></i>
+                        Username
+                    </label>
+                    <div class="input-group">
+                        <input type="text" 
+                               id="username" 
+                               name="username" 
+                               class="form-control" 
+                               placeholder="Choose a unique username"
+                               required
+                               autocomplete="username">
+                        <div class="input-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Email Field -->
-                <div th:replace="~{fragments/forms :: input-with-icon(
-                    id='email', 
-                    name='email', 
-                    label='Email Address', 
-                    type='email', 
-                    placeholder='Enter your email', 
-                    value='', 
-                    icon='envelope', 
-                    required=true
-                )}"></div>
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        Email Address
+                    </label>
+                    <div class="input-group">
+                        <input type="email" 
+                               id="email" 
+                               name="email" 
+                               class="form-control" 
+                               placeholder="Enter your email address"
+                               required
+                               autocomplete="email">
+                        <div class="input-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Password Field -->
-                <div th:replace="~{fragments/forms :: input-with-icon(
-                    id='password', 
-                    name='password', 
-                    label='Password', 
-                    type='password', 
-                    placeholder='Create a password', 
-                    value='', 
-                    icon='lock', 
-                    required=true
-                )}"></div>
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <div class="input-group">
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               class="form-control" 
+                               placeholder="Create a strong password"
+                               required
+                               autocomplete="new-password">
+                        <div class="input-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                            <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                        </button>
+                    </div>
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <div class="strength-text" id="strengthText">Password strength</div>
+                    </div>
+                </div>
                 
                 <!-- Confirm Password Field -->
-                <div th:replace="~{fragments/forms :: input-with-icon(
-                    id='confirmPassword', 
-                    name='confirmPassword', 
-                    label='Confirm Password', 
-                    type='password', 
-                    placeholder='Confirm your password', 
-                    value='', 
-                    icon='lock', 
-                    required=true
-                )}"></div>
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Confirm Password
+                    </label>
+                    <div class="input-group">
+                        <input type="password" 
+                               id="confirmPassword" 
+                               name="confirmPassword" 
+                               class="form-control" 
+                               placeholder="Confirm your password"
+                               required
+                               autocomplete="new-password">
+                        <div class="input-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                            <i class="fas fa-eye" id="confirmPasswordToggleIcon"></i>
+                        </button>
+                    </div>
+                    <div class="password-match" id="passwordMatch">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Passwords match</span>
+                    </div>
+                </div>
                 
-
+                <!-- Terms and Conditions -->
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="acceptTerms" name="acceptTerms" required>
+                        <span class="checkmark"></span>
+                        <span class="checkbox-text">I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a></span>
+                    </label>
+                </div>
                 
                 <!-- Submit Button -->
-                <div th:replace="~{fragments/forms :: loading-button(text='Create Account', loadingText='Creating Account...')}"></div>
+                <button type="submit" id="submitBtn" class="btn btn-primary btn-block btn-lg">
+                    <span class="btn-text">Create Account</span>
+                    <span class="btn-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Creating Account...
+                    </span>
+                </button>
             </form>
             
             <!-- Auth Footer -->
@@ -74,130 +138,290 @@
         </div>
     </div>
     
-    <!-- Include Form Styles -->
-    <div th:replace="~{fragments/forms :: form-styles}"></div>
-    
-    <!-- Custom Styles for Register -->
+    <!-- Premium Styles for Register -->
     <style>
+        .auth-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, 
+                var(--royal-blue-600), 
+                var(--royal-gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            box-shadow: 
+                0 8px 32px rgba(30, 58, 138, 0.3),
+                0 4px 16px rgba(30, 58, 138, 0.2);
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+        
+        .auth-icon i {
+            font-size: var(--font-size-3xl);
+            color: white;
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-label i {
+            color: var(--royal-blue-400);
+            width: 16px;
+        }
+        
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group .form-control {
+            padding-right: 60px;
+            padding-left: 50px;
+            height: 56px;
+            font-size: var(--font-size-lg);
+            border-radius: var(--border-radius-lg);
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            transition: var(--transition);
+        }
+        
+        .input-group .form-control:focus {
+            border-color: var(--royal-blue-500);
+            box-shadow: 
+                0 0 0 4px rgba(59, 130, 246, 0.2),
+                0 8px 24px rgba(30, 58, 138, 0.15);
+            background: rgba(15, 23, 42, 0.95);
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            color: var(--royal-blue-400);
+            font-size: var(--font-size-lg);
+            z-index: 2;
+            transition: var(--transition);
+        }
+        
+        .input-group .form-control:focus + .input-icon {
+            color: var(--royal-blue-300);
+            transform: scale(1.1);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            background: none;
+            border: none;
+            color: var(--royal-blue-400);
+            cursor: pointer;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+            z-index: 2;
+        }
+        
+        .password-toggle:hover {
+            color: var(--royal-blue-300);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .password-strength {
+            margin-top: var(--spacing-sm);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .password-strength.show {
+            opacity: 1;
+        }
+        
+        .strength-bar {
+            height: 4px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .strength-fill.weak {
+            background: var(--danger);
+            width: 25%;
+        }
+        
+        .strength-fill.fair {
+            background: var(--warning);
+            width: 50%;
+        }
+        
+        .strength-fill.good {
+            background: var(--info);
+            width: 75%;
+        }
+        
+        .strength-fill.strong {
+            background: var(--success);
+            width: 100%;
+        }
+        
+        .strength-text {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .password-match {
+            margin-top: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: var(--font-size-xs);
+            color: var(--success);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .password-match.show {
+            opacity: 1;
+        }
+        
+        .password-match.error {
+            color: var(--danger);
+        }
+        
+        .password-match.error i {
+            transform: rotate(45deg);
+        }
+        
         .checkbox-label {
             display: flex;
             align-items: flex-start;
-            gap: 0.75rem;
+            gap: var(--spacing-md);
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: var(--font-size-sm);
             color: var(--text-primary);
             user-select: none;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            transition: var(--transition);
             line-height: 1.5;
         }
         
+        .checkbox-label:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
         .checkbox-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--light-green);
+            width: 20px;
+            height: 20px;
+            accent-color: var(--royal-blue-500);
             cursor: pointer;
+            border-radius: var(--border-radius-sm);
             margin-top: 2px;
-            flex-shrink: 0;
         }
         
-        .auth-container {
-            background: linear-gradient(135deg, 
-                var(--dark-grey) 0%, 
-                var(--medium-grey) 50%, 
-                var(--dark-grey) 100%);
-            background-attachment: fixed;
+        .checkbox-text {
+            font-weight: 500;
+        }
+        
+        .terms-link {
+            color: var(--royal-blue-400);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .terms-link:hover {
+            color: var(--royal-gold);
+            text-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+        }
+        
+        .btn {
+            height: 56px;
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: var(--border-radius-lg);
             position: relative;
+            overflow: hidden;
         }
         
-        .auth-container::before {
+        .btn::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234a7c59' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.3;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
         
-        .auth-card {
-            position: relative;
-            z-index: 2;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(74, 124, 89, 0.2);
-            max-width: 500px;
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
         }
         
-        .auth-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, 
-                rgba(45, 102, 80, 0.1) 0%, 
-                rgba(26, 77, 58, 0.1) 100%);
-            border-radius: 16px;
-            z-index: -1;
+        .btn-loading {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
         }
         
-        /* Password strength indicator */
-        .password-strength {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            display: none;
-        }
-        
-        .password-strength.weak {
-            background: rgba(220, 53, 69, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(220, 53, 69, 0.3);
-        }
-        
-        .password-strength.medium {
-            background: rgba(255, 193, 7, 0.1);
-            color: #ffc107;
-            border: 1px solid rgba(255, 193, 7, 0.3);
-        }
-        
-        .password-strength.strong {
-            background: rgba(40, 167, 69, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(40, 167, 69, 0.3);
-        }
-        
-        /* Password match indicator */
-        .password-match {
-            margin-top: 0.5rem;
-            font-size: 0.875rem;
-            display: none;
-        }
-        
-        .password-match.match {
-            color: var(--success);
-        }
-        
-        .password-match.no-match {
-            color: var(--danger);
-        }
-        
+        /* Mobile Responsive */
         @media (max-width: 480px) {
-            .auth-container {
-                padding: 1rem;
-            }
-            
             .auth-card {
-                padding: 2rem 1.5rem;
+                padding: var(--spacing-xl) var(--spacing-lg);
+                margin: var(--spacing-sm);
             }
             
             .auth-title {
-                font-size: 1.8rem;
+                font-size: var(--font-size-3xl);
             }
             
-            .checkbox-label {
-                font-size: 0.85rem;
+            .auth-icon {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .auth-icon i {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .input-group .form-control {
+                height: 50px;
+                font-size: var(--font-size-base);
+            }
+            
+            .btn {
+                height: 50px;
+                font-size: var(--font-size-base);
             }
         }
     </style>
@@ -208,82 +432,134 @@
     <script>
         // Initialize register page
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize AuthManager (app.js is now loaded before auth.js)
-            new AuthManager();
+            // AuthManager is initialized by /js/auth.js; this page script handles UI-only behaviors
             
-            // Focus on username field
-            document.getElementById('username').focus();
-            
-            // Add password strength checking
-            const passwordField = document.getElementById('password');
-            const confirmPasswordField = document.getElementById('confirmPassword');
-            
-            // Add password strength indicator
-            const strengthIndicator = document.createElement('div');
-            strengthIndicator.className = 'password-strength';
-            passwordField.parentNode.parentNode.appendChild(strengthIndicator);
-            
-            // Add password match indicator
-            const matchIndicator = document.createElement('div');
-            matchIndicator.className = 'password-match';
-            confirmPasswordField.parentNode.parentNode.appendChild(matchIndicator);
+            // Focus on username field with animation
+            setTimeout(() => {
+                const usernameField = document.getElementById('username');
+                if (usernameField) {
+                    usernameField.focus();
+                    usernameField.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        usernameField.style.transform = 'scale(1)';
+                    }, 200);
+                }
+            }, 300);
             
             // Password strength checker
+            const passwordField = document.getElementById('password');
+            const confirmPasswordField = document.getElementById('confirmPassword');
+            const strengthBar = document.getElementById('passwordStrength');
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            const passwordMatch = document.getElementById('passwordMatch');
+            
             passwordField.addEventListener('input', function() {
                 const password = this.value;
-                const strength = checkPasswordStrength(password);
-                
                 if (password.length > 0) {
-                    strengthIndicator.style.display = 'block';
-                    strengthIndicator.className = `password-strength ${strength.level}`;
-                    strengthIndicator.textContent = strength.message;
+                    strengthBar.classList.add('show');
+                    checkPasswordStrength(password);
                 } else {
-                    strengthIndicator.style.display = 'none';
+                    strengthBar.classList.remove('show');
                 }
-                
-                checkPasswordMatch();
             });
             
-            // Password match checker
-            confirmPasswordField.addEventListener('input', checkPasswordMatch);
-            
-            function checkPasswordMatch() {
+            confirmPasswordField.addEventListener('input', function() {
                 const password = passwordField.value;
-                const confirmPassword = confirmPasswordField.value;
+                const confirmPassword = this.value;
                 
                 if (confirmPassword.length > 0) {
-                    matchIndicator.style.display = 'block';
+                    passwordMatch.classList.add('show');
                     if (password === confirmPassword) {
-                        matchIndicator.className = 'password-match match';
-                        matchIndicator.innerHTML = '<i class="fas fa-check"></i> Passwords match';
+                        passwordMatch.classList.remove('error');
+                        passwordMatch.innerHTML = '<i class="fas fa-check-circle"></i><span>Passwords match</span>';
                     } else {
-                        matchIndicator.className = 'password-match no-match';
-                        matchIndicator.innerHTML = '<i class="fas fa-times"></i> Passwords do not match';
+                        passwordMatch.classList.add('error');
+                        passwordMatch.innerHTML = '<i class="fas fa-times-circle"></i><span>Passwords do not match</span>';
                     }
                 } else {
-                    matchIndicator.style.display = 'none';
+                    passwordMatch.classList.remove('show');
                 }
-            }
+            });
             
             function checkPasswordStrength(password) {
                 let score = 0;
-                let message = '';
+                let feedback = '';
                 
+                // Length check
                 if (password.length >= 8) score++;
-                if (/[a-z]/.test(password)) score++;
-                if (/[A-Z]/.test(password)) score++;
-                if (/[0-9]/.test(password)) score++;
-                if (/[^A-Za-z0-9]/.test(password)) score++;
+                else feedback += 'At least 8 characters. ';
                 
-                if (score < 3) {
-                    return { level: 'weak', message: 'Password is weak. Add uppercase, numbers, and symbols.' };
-                } else if (score < 4) {
-                    return { level: 'medium', message: 'Password is medium strength. Consider adding more variety.' };
+                // Lowercase check
+                if (/[a-z]/.test(password)) score++;
+                else feedback += 'Lowercase letters. ';
+                
+                // Uppercase check
+                if (/[A-Z]/.test(password)) score++;
+                else feedback += 'Uppercase letters. ';
+                
+                // Number check
+                if (/[0-9]/.test(password)) score++;
+                else feedback += 'Numbers. ';
+                
+                // Special character check
+                if (/[^A-Za-z0-9]/.test(password)) score++;
+                else feedback += 'Special characters. ';
+                
+                // Update strength indicator
+                strengthFill.className = 'strength-fill';
+                if (score <= 2) {
+                    strengthFill.classList.add('weak');
+                    strengthText.textContent = 'Weak password';
+                } else if (score === 3) {
+                    strengthFill.classList.add('fair');
+                    strengthText.textContent = 'Fair password';
+                } else if (score === 4) {
+                    strengthFill.classList.add('good');
+                    strengthText.textContent = 'Good password';
                 } else {
-                    return { level: 'strong', message: 'Password is strong!' };
+                    strengthFill.classList.add('strong');
+                    strengthText.textContent = 'Strong password';
                 }
             }
+            
+            // Add enter key handler
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const submitBtn = document.getElementById('submitBtn');
+                    if (submitBtn && !submitBtn.disabled) {
+                        submitBtn.click();
+                    }
+                }
+            });
+            
+            // Add input animations
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+            });
         });
+        
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleIcon = document.getElementById(fieldId + 'ToggleIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
     </script>
 </body>
 </html>

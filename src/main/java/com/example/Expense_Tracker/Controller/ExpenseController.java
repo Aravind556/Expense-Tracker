@@ -3,12 +3,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,13 +27,13 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 
-
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/expense")
 public class ExpenseController {
 
     private final ExpenseService expenseService;
+
 
     @PostMapping("/add")
     public ResponseEntity<Expense> AddExpense(@Valid @RequestBody ExpenseDto expense) {
@@ -88,9 +87,17 @@ public class ExpenseController {
 
     @DeleteMapping("/{expenseId}")
     public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId) {
-        //TODO: implement logic to delete the expense
-        expenseService.deleteExpense(expenseId);
-        return ResponseEntity.ok().build();
+        try {
+            expenseService.deleteExpense(expenseId);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException ex) {
+            // If the service indicates the expense wasn't found or doesn't belong to the user,
+            // return a 404 with a helpful JSON body so the frontend can show a user-friendly message.
+            String msg = ex.getMessage() != null ? ex.getMessage() : "Expense not found";
+            return ResponseEntity.status(404).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping("/CategoryFilter")

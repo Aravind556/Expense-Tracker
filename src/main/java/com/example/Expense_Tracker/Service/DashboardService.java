@@ -5,8 +5,10 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -31,10 +33,10 @@ public class DashboardService {
      */
     public Map<String, Object> getDashboardStatistics(String username) {
         Map<String, Object> stats = new HashMap<>();
-        
+
         Double totalExpenses = expenseRepo.getTotalExpenseByUsername(username);
         stats.put("totalExpenses", totalExpenses != null ? BigDecimal.valueOf(totalExpenses) : BigDecimal.ZERO);
-        
+
         // Get current month expenses
         LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
         LocalDateTime endOfMonth = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()).atTime(23, 59, 59);
@@ -43,11 +45,11 @@ public class DashboardService {
             .map(Expense::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         stats.put("monthlyExpenses", monthlyTotal);
-        
+
         // Total transactions count
         List<Expense> allExpenses = expenseRepo.findByUserUsernameOrderByCreatedAtDesc(username);
         stats.put("totalTransactions", allExpenses.size());
-        
+
         // Average transaction
         BigDecimal averageTransaction = BigDecimal.ZERO;
         if (!allExpenses.isEmpty()) {
@@ -57,7 +59,7 @@ public class DashboardService {
             averageTransaction = total.divide(BigDecimal.valueOf(allExpenses.size()), 2, RoundingMode.HALF_UP);
         }
         stats.put("averageTransaction", averageTransaction);
-        
+
         return stats;
     }
 
@@ -71,11 +73,11 @@ public class DashboardService {
         BigDecimal total = expenses.stream()
             .map(Expense::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
         if (total.equals(BigDecimal.ZERO)) {
             return List.of();
         }
-        
+
         return expenses.stream()
             .collect(Collectors.groupingBy(Expense::getCategory))
             .entrySet().stream()
@@ -83,7 +85,7 @@ public class DashboardService {
                 BigDecimal categoryTotal = entry.getValue().stream()
                     .map(Expense::getAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-                
+
                 Map<String, Object> categoryData = new HashMap<>();
                 categoryData.put("name", entry.getKey().getDisplayName());
                 categoryData.put("category", entry.getKey().name());
@@ -91,7 +93,7 @@ public class DashboardService {
                 categoryData.put("total", total);
                 categoryData.put("percentage", categoryTotal.multiply(BigDecimal.valueOf(100))
                     .divide(total, 1, RoundingMode.HALF_UP).doubleValue());
-                
+
                 return categoryData;
             })
             .collect(Collectors.toList());
@@ -106,11 +108,43 @@ public class DashboardService {
     public BigDecimal getMonthlyExpenses(String username, YearMonth yearMonth) {
         LocalDateTime startOfMonth = yearMonth.atDay(1).atStartOfDay();
         LocalDateTime endOfMonth = yearMonth.atEndOfMonth().atTime(23, 59, 59);
-        
+
         List<Expense> monthlyExpenses = expenseRepo.getExpensesInDateRange(username, startOfMonth, endOfMonth);
         return monthlyExpenses.stream()
             .map(Expense::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Get totals for recent months (including current). Returns only months with non-zero totals.
+     * @param username username
+     * @param monthsBack number of months to look back (including current). e.g., 6 => current + previous 5 months
+     */
+    public List<Map<String, Object>> getMonthlyExpensesList(String username, int monthsBack) {
+        if (monthsBack <= 0) return List.of();
+
+        YearMonth now = YearMonth.now();
+
+        return java.util.stream.IntStream.rangeClosed(0, monthsBack - 1)
+            .mapToObj(i -> now.minusMonths(i))
+            .map(ym -> {
+                BigDecimal total = getMonthlyExpenses(username, ym);
+                Map<String, Object> m = new HashMap<>();
+                m.put("month", ym);
+                String label = ym.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH) + " " + ym.getYear();
+                m.put("label", label);
+                m.put("amount", total);
+                return m;
+            })
+            //only includes months with non-zero totals
+            .filter(map -> {
+                Object amt = map.get("amount");
+                if (amt instanceof BigDecimal) {
+                    return ((BigDecimal) amt).compareTo(BigDecimal.ZERO) != 0;
+                }
+                return false;
+            })
+            .collect(Collectors.toList());
     }
 
     /**

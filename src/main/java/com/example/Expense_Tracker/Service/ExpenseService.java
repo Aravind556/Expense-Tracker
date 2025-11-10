@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -95,7 +93,7 @@ public class ExpenseService {
     public List<Expense> getExpenseByMonth(){
         User user = getCurrentUser();
         LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-        LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusSeconds(1);
+        LocalDateTime endOfMonth = startOfMonth.minusMonths(1).minusSeconds(1);
         return expenseRepo.getExpensesInDateRange(user.getUsername(), startOfMonth, endOfMonth);
     }
 
@@ -111,7 +109,19 @@ public class ExpenseService {
 
     public void deleteExpense(Long expenseId){
         User user = getCurrentUser();
-        Expense expense=expenseRepo.findByIdAndUserUsername(expenseId, user.getUsername())
+        // Debug logging to help trace ownership issues
+        System.out.println("[DEBUG] deleteExpense called. expenseId=" + expenseId + ", currentUser=" + (user != null ? user.getUsername() : "<null>"));
+
+        java.util.Optional<Expense> maybeExpense = expenseRepo.findById(expenseId);
+        if (maybeExpense.isPresent()) {
+            Expense found = maybeExpense.get();
+            String owner = found.getUser() != null ? found.getUser().getUsername() : "<no-owner>";
+            System.out.println("[DEBUG] Expense exists. owner=" + owner + ", amount=" + found.getAmount());
+        } else {
+            System.out.println("[DEBUG] Expense with id=" + expenseId + " not found in DB.");
+        }
+
+        Expense expense = expenseRepo.findByIdAndUserUsername(expenseId, user.getUsername())
             .orElseThrow(() -> new RuntimeException("Expense not found or does not belong to the user"));
         expenseRepo.delete(expense);
     }

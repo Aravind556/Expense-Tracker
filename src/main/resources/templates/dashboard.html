@@ -7,7 +7,7 @@
     
     <main class="main-content">
         <div class="container">
-            <!-- Page Header -->
+            <!-- Premium Page Header -->
             <div class="page-header">
                 <h1 class="page-title">
                     <i class="fas fa-tachometer-alt"></i>
@@ -16,7 +16,7 @@
                 <p class="page-subtitle">Overview of your expenses and financial activity</p>
             </div>
             
-            <!-- Dashboard Controls -->
+            <!-- Premium Dashboard Controls -->
             <div class="dashboard-controls">
                 <div class="control-group">
                     <label for="timePeriodSelector" class="control-label">
@@ -49,43 +49,61 @@
                 </div>
             </div>
 
-            <!-- Statistics Grid -->
+            <!-- Premium Statistics Grid -->
             <div class="stats-grid">
                 <!-- Total Expenses -->
                 <div id="totalExpenses" class="stat-card">
+                    <div class="stat-side-label">Total</div>
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
                     <div class="stat-content">
+                        <div class="stat-heading">Total</div>
                         <div class="stat-value">$0.00</div>
                         <div class="stat-label">Total Expenses</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+5.2%</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Transaction Count -->
                 <div id="totalTransactions" class="stat-card">
+                    <div class="stat-side-label">Number</div>
                     <div class="stat-icon">
                         <i class="fas fa-receipt"></i>
                     </div>
                     <div class="stat-content">
+                        <div class="stat-heading">Number</div>
                         <div class="stat-value">0</div>
                         <div class="stat-label">Transactions</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-2.1%</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Average Transaction -->
                 <div id="averageTransaction" class="stat-card">
+                    <div class="stat-side-label">Average</div>
                     <div class="stat-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <div class="stat-content">
+                        <div class="stat-heading">Average Spent</div>
                         <div class="stat-value">$0.00</div>
                         <div class="stat-label">Average Transaction</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+8.7%</span>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Dashboard Content Grid -->
+            <!-- Premium Dashboard Content Grid -->
             <div class="dashboard-grid">
                 <!-- Recent Expenses Card -->
                 <div class="dashboard-card">
@@ -95,13 +113,17 @@
                                 <i class="fas fa-clock"></i>
                                 Recent Expenses
                             </h3>
+                            <a href="/expenses" class="btn btn-sm btn-outline">
+                                <i class="fas fa-external-link-alt"></i>
+                                View All
+                            </a>
                         </div>
                         <div class="card-body">
                             <div id="recentExpensesList" class="recent-expenses-list">
                                 <!-- Recent expenses will be loaded here by JavaScript -->
                                 <div class="loading-placeholder">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    Loading recent expenses...
+                                    <div class="loading-spinner-small"></div>
+                                    <span>Loading recent expenses...</span>
                                 </div>
                             </div>
                         </div>
@@ -121,8 +143,8 @@
                             <div id="categoryChart" class="chart-container">
                                 <!-- Category chart will be loaded here by JavaScript -->
                                 <div class="loading-placeholder">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    Loading category data...
+                                    <div class="loading-spinner-small"></div>
+                                    <span>Loading category data...</span>
                                 </div>
                             </div>
                         </div>
@@ -142,8 +164,8 @@
                             <div id="monthlyChart" class="chart-container">
                                 <!-- Monthly trend chart will be loaded here by JavaScript -->
                                 <div class="loading-placeholder">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    Loading trend data...
+                                    <div class="loading-spinner-small"></div>
+                                    <span>Loading trend data...</span>
                                 </div>
                             </div>
                         </div>
@@ -201,77 +223,353 @@
     <!-- Include Card Styles -->
     <div th:replace="~{fragments/cards :: card-styles}"></div>
     
-    <!-- Dashboard Specific Styles -->
+    <!-- Premium Dashboard Specific Styles -->
     <style>
         .page-header {
-            margin-bottom: 2rem;
+            margin-bottom: var(--spacing-2xl);
             text-align: center;
+            position: relative;
+        }
+        
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--royal-blue-500), 
+                var(--royal-gold), 
+                var(--royal-blue-500), 
+                transparent);
+            border-radius: 2px;
         }
         
         .page-title {
-            font-size: 2.5rem;
-            color: var(--light-green);
-            margin-bottom: 0.5rem;
+            font-size: var(--font-size-4xl);
+            color: var(--royal-blue-300);
+            margin-bottom: var(--spacing-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 1rem;
+            gap: var(--spacing-md);
+            text-shadow: 0 2px 4px rgba(30, 58, 138, 0.3);
         }
         
         .page-subtitle {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: var(--font-size-lg);
             margin: 0;
+            font-weight: 400;
+        }
+        
+        .dashboard-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-2xl);
+            padding: var(--spacing-lg);
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.05), 
+                rgba(30, 58, 138, 0.02));
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius-xl);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .control-label {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+        }
+        
+        .control-label i {
+            color: var(--royal-blue-400);
+        }
+        
+        .form-select {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: var(--border-radius-md);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+            transition: var(--transition);
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--royal-blue-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .text-muted {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
         }
         
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-xl);
         }
         
         .dashboard-card {
             height: fit-content;
         }
         
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            margin-top: var(--spacing-xs);
+        }
+        
+        .stat-trend.positive {
+            color: var(--success);
+        }
+        
+        .stat-trend.negative {
+            color: var(--danger);
+        }
+        
         .quick-actions {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: var(--spacing-md);
         }
         
         .quick-action-btn {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: var(--light-grey);
-            border: 2px solid var(--border-grey);
-            border-radius: 8px;
+            gap: var(--spacing-md);
+            padding: var(--spacing-lg);
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.05), 
+                rgba(30, 58, 138, 0.02));
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--border-radius-lg);
             text-decoration: none;
             color: var(--text-primary);
             transition: var(--transition);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quick-action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+            transition: left 0.5s;
+        }
+        
+        .quick-action-btn:hover::before {
+            left: 100%;
         }
         
         .quick-action-btn:hover {
-            background: var(--border-grey);
-            border-color: var(--light-green);
-            transform: translateY(-2px);
+            background: linear-gradient(145deg, 
+                rgba(59, 130, 246, 0.1), 
+                rgba(30, 58, 138, 0.05));
+            border-color: var(--royal-blue-500);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 12px 24px rgba(30, 58, 138, 0.2),
+                0 4px 12px rgba(30, 58, 138, 0.1);
         }
-        
-        .action-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+
+        /* Category cards - compact layout so many fit per row */
+        .category-cards {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: stretch;
+            flex-wrap: wrap; /* wrap to new rows */
+            justify-content: flex-start;
+            width: 100%;
+            padding: var(--spacing-xs) 0;
+        }
+
+        /* compact fixed-width cards to fit multiple per row */
+        .category-card {
+            flex: 0 0 180px; /* fixed small width */
+            max-width: 180px;
+            display: block;
+        }
+
+        .category-card .card-body {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            width: 100%;
+            padding: calc(var(--spacing-sm));
+            background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.008));
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow: 0 6px 14px rgba(14, 30, 60, 0.18);
+            min-height: 70px;
+        }
+
+        /* Minimal centered card content: only name and amount */
+        .category-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            min-height: 64px;
+        }
+
+        .category-center .category-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .category-center .category-amount {
+            font-weight: 800;
+            color: var(--royal-blue-300);
+            font-size: 0.95rem;
+        }
+
+        /* Hide old decorative elements when using minimal cards */
+        .category-bar,
+        .category-percentage-row,
+        .category-icon {
+            display: none !important;
+        }
+
+        .category-card-top {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            justify-content: space-between; /* keep name on left and amount on right */
+        }
+
+        .category-icon {
+            width: 56px;
+            height: 56px;
             border-radius: 12px;
+            background: linear-gradient(135deg, var(--royal-blue-600), var(--royal-blue-700));
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.2rem;
+            font-size: 20px;
             flex-shrink: 0;
+            box-shadow: inset 0 2px 6px rgba(255,255,255,0.04);
+        }
+
+        .category-meta {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0; /* allow ellipsis */
+            margin-left: var(--spacing-sm);
+            overflow: hidden;
+        }
+
+        .category-name {
+            font-weight: 800;
+            color: var(--text-primary);
+            font-size: var(--font-size-lg);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .category-percentage.small {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .category-amount.large {
+            font-weight: 900;
+            color: var(--royal-blue-300);
+            margin-left: 0;
+            white-space: nowrap;
+            font-size: var(--font-size-xl);
+            flex: 0 0 auto;
+            text-align: right;
+        }
+
+        .category-bar {
+            height: 10px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 6px;
+            width: 80%;
+        }
+
+        .category-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--royal-blue-500), var(--royal-gold));
+            width: 0%;
+            transition: width 0.9s cubic-bezier(0.2,0.9,0.2,1);
+            border-radius: 8px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1100px) {
+            /* slightly smaller fixed width to fit more */
+            .category-card { flex: 0 0 160px; max-width: 160px; }
+        }
+
+        @media (max-width: 900px) {
+            /* two columns on medium screens */
+            .category-card { flex: 0 0 48%; max-width: 48%; }
+        }
+
+        @media (max-width: 600px) {
+            /* single column on small screens */
+            .category-card { flex: 1 1 100%; max-width: 100%; }
+            .category-card .card-body { min-height: 80px; }
+        }
+        
+        .action-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, 
+                var(--royal-blue-600), 
+                var(--royal-blue-700));
+            border-radius: var(--border-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: var(--font-size-xl);
+            flex-shrink: 0;
+            box-shadow: 
+                0 8px 16px rgba(30, 58, 138, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .action-content {
@@ -280,97 +578,199 @@
         
         .action-title {
             font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 0.25rem;
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-xs);
             color: var(--text-primary);
         }
         
         .action-desc {
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: var(--font-size-sm);
+            line-height: 1.4;
         }
         
-        .monthly-summary {
+        .loading-placeholder {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-xl);
+            color: var(--text-secondary);
         }
         
-        .summary-item {
+        .loading-spinner-small {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--royal-gray-700);
+            border-top: 3px solid var(--royal-blue-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .chart-container {
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Monthly cards styling */
+        .monthly-cards {
+            display: flex;
+            gap: var(--spacing-lg);
+            align-items: stretch;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .monthly-card {
+            flex: 1 1 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .monthly-card-content {
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .monthly-card-month {
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .monthly-card-amount {
+            font-size: var(--font-size-2xl);
+            font-weight: 800;
+            color: var(--royal-blue-300);
+        }
+        
+        .recent-expenses-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        
+        .recent-expense-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border-grey);
+            padding: var(--spacing-md);
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.03), 
+                rgba(30, 58, 138, 0.01));
+            border-radius: var(--border-radius-md);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            transition: var(--transition);
+            cursor: pointer;
         }
         
-        .summary-item:last-child {
-            border-bottom: none;
+        .recent-expense-item:hover {
+            background: linear-gradient(145deg, 
+                rgba(59, 130, 246, 0.05), 
+                rgba(30, 58, 138, 0.02));
+            border-color: var(--royal-blue-400);
+            transform: translateY(-2px);
         }
         
-        .summary-label {
-            color: var(--text-secondary);
-            font-weight: 500;
+        .expense-info {
+            flex: 1;
         }
         
-        .summary-value {
-            font-weight: 700;
-            font-size: 1.1rem;
+        .expense-description {
+            font-weight: 600;
             color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
         }
         
-        .change-value.positive {
-            color: var(--success);
+        .expense-meta {
+            display: flex;
+            gap: var(--spacing-md);
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
         }
         
-        .change-value.negative {
-            color: var(--danger);
+        .expense-category {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
         }
         
+        .expense-date {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .expense-amount {
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+            color: var(--royal-blue-400);
+        }
+        
+        /* Responsive Design */
         @media (max-width: 768px) {
             .page-title {
-                font-size: 2rem;
+                font-size: var(--font-size-3xl);
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: var(--spacing-sm);
             }
             
             .dashboard-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: var(--spacing-lg);
+            }
+            
+            .dashboard-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--spacing-md);
+            }
+            
+            .control-group {
+                justify-content: space-between;
             }
             
             .quick-action-btn {
-                padding: 0.75rem;
+                padding: var(--spacing-md);
             }
             
             .action-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
+                width: 50px;
+                height: 50px;
+                font-size: var(--font-size-lg);
             }
             
             .action-title {
-                font-size: 1rem;
+                font-size: var(--font-size-base);
             }
         }
         
         @media (max-width: 480px) {
             .page-header {
-                margin-bottom: 1.5rem;
+                margin-bottom: var(--spacing-xl);
             }
             
             .page-title {
-                font-size: 1.8rem;
+                font-size: var(--font-size-2xl);
             }
             
             .page-subtitle {
-                font-size: 1rem;
+                font-size: var(--font-size-base);
+            }
+            
+            .dashboard-controls {
+                padding: var(--spacing-md);
             }
         }
     </style>
     
     <!-- JavaScript -->
     <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/auth.js}"></script>
     <script th:src="@{/js/dashboard.js}"></script>
     <script>
         // Initialize dashboard when page loads
@@ -379,6 +779,19 @@
                 window.dashboardManager = new DashboardManager();
                 window.dashboardManager.init();
             }
+            
+            // Add entrance animations
+            const cards = document.querySelectorAll('.stat-card, .dashboard-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
         });
     </script>
 </body>

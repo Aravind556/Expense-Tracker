@@ -7,178 +7,770 @@
     
     <main class="main-content">
         <div class="container">
-            <!-- Page Header -->
+            <!-- Premium Page Header -->
             <div class="page-header">
-                <div class="page-header-content">
-                    <div class="page-title-section">
-                        <h1 class="page-title">
-                            <i class="fas fa-list"></i>
-                            All Expenses
-                        </h1>
-                        <p class="page-subtitle">Manage and track all your expenses</p>
-                    </div>
-                    <div class="page-actions">
-                        <a href="/add-expense" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
-                            Add Expense
-                        </a>
-                    </div>
-                </div>
+                <h1 class="page-title">
+                    <i class="fas fa-list"></i>
+                    Expenses
+                </h1>
+                <p class="page-subtitle">Manage and track all your expenses</p>
             </div>
             
-            <!-- Filters and Search -->
-            <div class="filters-section">
+            <!-- Premium Filter Section -->
+            <div class="filter-section">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-filter"></i>
-                            Filter Expenses
+                            Filter & Search
                         </h3>
-                        <div class="card-actions">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFilters()">
+                        <button id="toggleFilters" class="btn btn-sm btn-outline">
+                            <i class="fas fa-chevron-down"></i>
+                            Toggle Filters
+                        </button>
+                    </div>
+                    <div class="card-body" id="filterBody">
+                        <div class="filter-grid">
+                            <!-- Search Field -->
+                            <div class="filter-group">
+                                <label for="searchInput" class="filter-label">
+                                    <i class="fas fa-search"></i>
+                                    Search
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           id="searchInput" 
+                                           class="form-control" 
+                                           placeholder="Search by description...">
+                                    <div class="input-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Category Filter -->
+                            <div class="filter-group">
+                                <label for="categoryFilter" class="filter-label">
+                                    <i class="fas fa-tags"></i>
+                                    Category
+                                </label>
+                                <select id="categoryFilter" class="form-select">
+                                    <option value="">All Categories</option>
+                                    <option value="FOOD">Food</option>
+                                    <option value="TRANSPORTATION">Transportation</option>
+                                    <option value="UTILITIES">Utilities</option>
+                                    <option value="ENTERTAINMENT">Entertainment</option>
+                                    <option value="HEALTHCARE">Healthcare</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Date Range -->
+                            <div class="filter-group">
+                                <label for="startDate" class="filter-label">
+                                    <i class="fas fa-calendar"></i>
+                                    Date Range
+                                </label>
+                                <div class="date-range">
+                                    <input type="date" id="startDate" class="form-control">
+                                    <span class="date-separator">to</span>
+                                    <input type="date" id="endDate" class="form-control">
+                                </div>
+                            </div>
+                            
+                            <!-- Amount Range -->
+                            <div class="filter-group">
+                                <label for="minAmount" class="filter-label">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    Amount Range
+                                </label>
+                                <div class="amount-range">
+                                    <input type="number" 
+                                           id="minAmount" 
+                                           class="form-control" 
+                                           placeholder="Min" 
+                                           step="0.01" 
+                                           min="0">
+                                    <span class="amount-separator">to</span>
+                                    <input type="number" 
+                                           id="maxAmount" 
+                                           class="form-control" 
+                                           placeholder="Max" 
+                                           step="0.01" 
+                                           min="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Filter Buttons -->
+                        <div class="quick-filters">
+                            <h4 class="quick-filters-title">
+                                <i class="fas fa-bolt"></i>
+                                Quick Filters
+                            </h4>
+                            <div class="quick-filter-buttons">
+                                <button class="quick-filter-btn" data-filter="today">
+                                    <i class="fas fa-calendar-day"></i>
+                                    Today
+                                </button>
+                                <button class="quick-filter-btn" data-filter="week">
+                                    <i class="fas fa-calendar-week"></i>
+                                    This Week
+                                </button>
+                                <button class="quick-filter-btn" data-filter="month">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    This Month
+                                </button>
+                                <button class="quick-filter-btn" data-filter="high">
+                                    <i class="fas fa-arrow-up"></i>
+                                    High Amount
+                                </button>
+                                <button class="quick-filter-btn" data-filter="recent">
+                                    <i class="fas fa-clock"></i>
+                                    Recent
+                                </button>
+                                <button class="quick-filter-btn" data-filter="clear">
+                                    <i class="fas fa-times"></i>
+                                    Clear All
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Filter Actions -->
+                        <div class="filter-actions">
+                            <button id="applyFilters" class="btn btn-primary">
+                                <i class="fas fa-filter"></i>
+                                Apply Filters
+                            </button>
+                            <button id="clearFilters" class="btn btn-secondary">
                                 <i class="fas fa-times"></i>
                                 Clear All
                             </button>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <!-- Quick Filter Buttons -->
-                        <div class="quick-filters">
-                            <label class="filter-label">Quick Filters:</label>
-                            <div class="quick-filter-buttons">
-                                <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="week">
-                                    <i class="fas fa-calendar-week"></i>
-                                    This Week
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="month">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    This Month
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary quick-filter-btn" data-filter="30days">
-                                    <i class="fas fa-calendar-day"></i>
-                                    Last 30 Days
-                                </button>
-                            </div>
-                        </div>
-
-                        <form id="filterForm" class="filters-form">
-                            <div class="filter-row">
-                                <!-- Search Input -->
-                                <div class="filter-group">
-                                    <label for="searchText">
-                                        <i class="fas fa-search"></i>
-                                        Search
-                                    </label>
-                                    <input type="text" id="searchText" name="search" placeholder="Search by description, category, or amount..." class="form-control">
-                                </div>
-
-                                <!-- Category Filter -->
-                                <div class="filter-group">
-                                    <label for="categoryFilter">
-                                        <i class="fas fa-tag"></i>
-                                        Category
-                                    </label>
-                                    <select id="categoryFilter" name="category" class="form-control">
-                                        <option value="">All Categories</option>
-                                        <option value="FOOD">🍕 Food</option>
-                                        <option value="TRANSPORTATION">🚗 Transportation</option>
-                                        <option value="ENTERTAINMENT">🎬 Entertainment</option>
-                                        <option value="UTILITIES">💡 Utilities</option>
-                                        <option value="HEALTHCARE">🏥 Healthcare</option>
-                                        <option value="SHOPPING">🛍️ Shopping</option>
-                                        <option value="EDUCATION">📚 Education</option>
-                                        <option value="OTHER">📝 Other</option>
-                                    </select>
-                                </div>
-
-                                <!-- Date Range Filters -->
-                                <div class="filter-group">
-                                    <label for="dateFrom">
-                                        <i class="fas fa-calendar-plus"></i>
-                                        From Date
-                                    </label>
-                                    <input type="date" id="dateFrom" name="dateFrom" class="form-control">
-                                </div>
-
-                                <div class="filter-group">
-                                    <label for="dateTo">
-                                        <i class="fas fa-calendar-minus"></i>
-                                        To Date
-                                    </label>
-                                    <input type="date" id="dateTo" name="dateTo" class="form-control">
-                                </div>
-
-                                <!-- Amount Range Filters -->
-                                <div class="filter-group">
-                                    <label for="minAmount">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        Min Amount
-                                    </label>
-                                    <input type="number" id="minAmount" name="minAmount" placeholder="0.00" step="0.01" min="0" class="form-control">
-                                </div>
-
-                                <div class="filter-group">
-                                    <label for="maxAmount">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        Max Amount
-                                    </label>
-                                    <input type="number" id="maxAmount" name="maxAmount" placeholder="0.00" step="0.01" min="0" class="form-control">
-                                </div>
-
-                                <!-- Filter Actions -->
-                                <div class="filter-actions">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search"></i>
-                                        Apply Filters
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             </div>
             
-            <!-- Expenses Section -->
+            <!-- Premium Expenses List -->
             <div class="expenses-section">
-                <div class="filter-summary">
-                    <div id="filterSummary" class="filter-summary-text">Loading expenses...</div>
-                    <div class="filter-summary-actions">
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="expenseManager.loadExpenses()">
-                            <i class="fas fa-sync-alt"></i>
-                            Refresh
-                        </button>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-receipt"></i>
+                            Expenses List
+                        </h3>
+                        <div class="expenses-actions">
+                            <div class="expenses-count">
+                                <span id="expensesCount">0</span> expenses found
+                            </div>
+                            <div class="view-toggle">
+                                <button class="view-btn active" data-view="grid">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="view-btn" data-view="list">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Expenses Container -->
+                        <div id="expensesContainer" class="expenses-container">
+                            <!-- Expenses will be loaded here by JavaScript -->
+                            <div class="loading-placeholder">
+                                <div class="loading-spinner-small"></div>
+                                <span>Loading expenses...</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div id="paginationContainer" class="pagination-container">
+                            <!-- Pagination will be loaded here by JavaScript -->
+                        </div>
                     </div>
                 </div>
-
-                <div id="loadingExpenses" class="loading-state" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <div class="loading-text">Loading expenses...</div>
-                </div>
-
-                <div id="expensesContainer"></div>
-                <div id="paginationContainer" class="pagination-container" style="display: none;"></div>
             </div>
         </div>
     </main>
-
-    <!-- Styles -->
-    <div th:replace="~{fragments/cards :: card-styles}"></div>
-
-    <!-- Script -->
+    
+    <!-- Premium Styles for Expenses Page -->
+    <style>
+        .page-header {
+            margin-bottom: var(--spacing-2xl);
+            text-align: center;
+            position: relative;
+        }
+        
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--royal-blue-500), 
+                var(--royal-gold), 
+                var(--royal-blue-500), 
+                transparent);
+            border-radius: 2px;
+        }
+        
+        .page-title {
+            font-size: var(--font-size-4xl);
+            color: var(--royal-blue-300);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-md);
+            text-shadow: 0 2px 4px rgba(30, 58, 138, 0.3);
+        }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: var(--font-size-lg);
+            margin: 0;
+            font-weight: 400;
+        }
+        
+        .filter-section {
+            margin-bottom: var(--spacing-2xl);
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-label i {
+            color: var(--royal-blue-400);
+            width: 16px;
+        }
+        
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group .form-control {
+            padding-right: 50px;
+            padding-left: 50px;
+            height: 50px;
+            font-size: var(--font-size-base);
+            border-radius: var(--border-radius-lg);
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            transition: var(--transition);
+        }
+        
+        .input-group .form-control:focus {
+            border-color: var(--royal-blue-500);
+            box-shadow: 
+                0 0 0 4px rgba(59, 130, 246, 0.2),
+                0 8px 24px rgba(30, 58, 138, 0.15);
+            background: rgba(15, 23, 42, 0.95);
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            color: var(--royal-blue-400);
+            font-size: var(--font-size-base);
+            z-index: 2;
+            transition: var(--transition);
+        }
+        
+        .input-group .form-control:focus + .input-icon {
+            color: var(--royal-blue-300);
+            transform: scale(1.1);
+        }
+        
+        .form-select {
+            height: 50px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: var(--border-radius-lg);
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            font-size: var(--font-size-base);
+            transition: var(--transition);
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--royal-blue-500);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+        
+        .date-range, .amount-range {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .date-separator, .amount-separator {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+        }
+        
+        .quick-filters {
+            margin-bottom: var(--spacing-xl);
+            padding-top: var(--spacing-lg);
+            border-top: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .quick-filters-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-primary);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .quick-filters-title i {
+            color: var(--royal-gold);
+        }
+        
+        .quick-filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+        
+        .quick-filter-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: var(--border-radius-md);
+            color: var(--royal-blue-400);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        
+        .quick-filter-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--royal-blue-500);
+            transform: translateY(-2px);
+        }
+        
+        .quick-filter-btn.active {
+            background: linear-gradient(135deg, 
+                var(--royal-blue-600), 
+                var(--royal-blue-700));
+            color: white;
+            border-color: var(--royal-blue-600);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+        }
+        
+        .expenses-section {
+            margin-bottom: var(--spacing-2xl);
+        }
+        
+        .expenses-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+        
+        .expenses-count {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .expenses-count span {
+            color: var(--royal-blue-400);
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+        
+        .view-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: var(--border-radius-md);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--royal-blue-400);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .view-btn:hover {
+            border-color: var(--royal-blue-500);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .view-btn.active {
+            background: linear-gradient(135deg, 
+                var(--royal-blue-600), 
+                var(--royal-blue-700));
+            color: white;
+            border-color: var(--royal-blue-600);
+        }
+        
+        .expenses-container {
+            min-height: 400px;
+        }
+        
+        .expenses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: var(--spacing-lg);
+        }
+        
+        .expenses-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        
+        .expense-card {
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.05), 
+                rgba(30, 58, 138, 0.02));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-xl);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .expense-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, 
+                var(--royal-blue-500), 
+                var(--royal-gold));
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .expense-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(30, 58, 138, 0.15),
+                0 8px 16px rgba(30, 58, 138, 0.1);
+            border-color: var(--royal-blue-400);
+        }
+        
+        .expense-card:hover::before {
+            opacity: 1;
+        }
+        
+        .expense-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .expense-category {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--royal-blue-300);
+        }
+        
+        .expense-amount {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--royal-blue-400);
+            text-shadow: 0 2px 4px rgba(30, 58, 138, 0.3);
+        }
+        
+        .expense-description {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+            line-height: 1.4;
+        }
+        
+        .expense-date {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        
+        .expense-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .expense-card:hover .expense-actions {
+            opacity: 1;
+        }
+        
+        .expense-action-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .expense-action-btn.edit {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+        
+        .expense-action-btn.edit:hover {
+            background: rgba(6, 182, 212, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .expense-action-btn.delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .expense-action-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .loading-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-2xl);
+            color: var(--text-secondary);
+        }
+        
+        .loading-spinner-small {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--royal-gray-700);
+            border-top: 3px solid var(--royal-blue-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-xl);
+            border-top: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .pagination {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+        }
+        
+        .pagination-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: var(--border-radius-md);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--royal-blue-400);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            border-color: var(--royal-blue-500);
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .pagination-btn.active {
+            background: linear-gradient(135deg, 
+                var(--royal-blue-600), 
+                var(--royal-blue-700));
+            color: white;
+            border-color: var(--royal-blue-600);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: var(--font-size-3xl);
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+            
+            .date-range, .amount-range {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-separator, .amount-separator {
+                text-align: center;
+                padding: var(--spacing-sm);
+            }
+            
+            .quick-filter-buttons {
+                justify-content: center;
+            }
+            
+            .filter-actions {
+                flex-direction: column;
+            }
+            
+            .expenses-actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--spacing-md);
+            }
+            
+            .expenses-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .expense-card {
+                padding: var(--spacing-lg);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-header {
+                margin-bottom: var(--spacing-xl);
+            }
+            
+            .page-title {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .page-subtitle {
+                font-size: var(--font-size-base);
+            }
+            
+            .expense-card {
+                padding: var(--spacing-md);
+            }
+            
+            .expense-amount {
+                font-size: var(--font-size-xl);
+            }
+            
+            .expense-description {
+                font-size: var(--font-size-base);
+            }
+        }
+    </style>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/auth.js}"></script>
     <script th:src="@{/js/expense.js}"></script>
     <script>
-        // ✅ Keep these helpers only
-        function clearFilters() {
-            if (window.expenseManager) {
-                window.expenseManager.clearFilters();
+        // Initialize expenses page when DOM loads. Avoid creating multiple ExpenseManager
+        // instances: expense.js already guards initialization via window.expenseManagerInitialized.
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof ExpenseManager !== 'undefined' && !window.expenseManagerInitialized) {
+                window.expenseManagerInitialized = true;
+                window.expenseManager = new ExpenseManager();
+                window.expenseManager.init();
             }
-        }
 
-        function changePage(page) {
-            if (window.expenseManager) {
-                window.expenseManager.loadExpenses(page);
-            }
-        }
+            // Add entrance animations
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
     </script>
 </body>
 </html>

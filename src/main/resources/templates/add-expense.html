@@ -1,203 +1,200 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/base :: head(title='Add Expense')}"></head>
+    <head th:replace="~{fragments/base :: head(title='Add Expense')}">
+        <!-- Flatpickr for date/time picker -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    </head>
 <body>
     <!-- Header -->
     <div th:replace="~{fragments/base :: header}"></div>
     
     <main class="main-content">
         <div class="container">
-            <!-- Page Header -->
+            <!-- Premium Page Header -->
             <div class="page-header">
-                <div class="page-header-content">
-                    <div class="page-title-section">
                         <h1 class="page-title">
                             <i class="fas fa-plus"></i>
-                            <span th:text="${expense != null && expense.id != null ? 'Edit Expense' : 'Add New Expense'}">Add New Expense</span>
+                    Add Expense
                         </h1>
-                        <p class="page-subtitle" th:text="${expense != null && expense.id != null ? 'Update your expense details' : 'Record a new expense transaction'}">Record a new expense transaction</p>
-                    </div>
-                    <div class="page-actions">
-                        <a href="/expenses" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Expenses
-                        </a>
-                    </div>
-                </div>
+                <p class="page-subtitle">Record a new expense to track your spending</p>
             </div>
             
-            <!-- Expense Form -->
-            <div class="form-section">
-                <div class="form-container">
-                    <form id="expenseForm" th:object="${expense}">
-                        <!-- Hidden ID field for editing -->
-                        <input type="hidden" th:field="*{id}" th:if="${expense != null && expense.id != null}">
-                        
-                        <div class="form-grid">
-                            <!-- Left Column -->
-                            <div class="form-column">
+            <!-- Premium Form Layout -->
+            <div class="form-layout">
+                <!-- Main Form Card -->
+                <div class="form-card">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-edit"></i>
+                                Expense Details
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Premium Expense Form -->
+                                <form id="expenseForm" onsubmit="handleSubmit(event)">
+                                <!-- Hidden id for edit mode -->
+                                <input type="hidden" id="expenseId" name="id" th:if="${expense != null}" th:value="${expense != null ? expense.id : ''}" />
                                 <!-- Description Field -->
                                 <div class="form-group">
-                                    <label for="description">Description</label>
+                                    <label for="description" class="form-label">
+                                        <i class="fas fa-comment"></i>
+                                        Description
+                                    </label>
                                     <div class="input-group">
+                         <input type="text" 
+                             id="description" 
+                             name="description" 
+                             class="form-control" 
+                             placeholder="What did you spend on?"
+                             th:value="${expense != null ? expense.description : ''}"
+                             required
+                             autocomplete="off">
                                         <div class="input-icon">
-                                            <i class="fas fa-receipt"></i>
+                                            <i class="fas fa-comment"></i>
                                         </div>
-                                        <input type="text" 
-                                               id="description" 
-                                               name="description" 
-                                               placeholder="Enter expense description"
-                                               th:value="${expense?.description}"
-                                               class="form-control" 
-                                               required>
+                                    </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-lightbulb"></i>
+                                        Be specific to help with categorization
                                     </div>
                                 </div>
                                 
                                 <!-- Amount Field -->
                                 <div class="form-group">
-                                    <label for="amount">Amount ($)</label>
+                                    <label for="amount" class="form-label">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        Amount
+                                    </label>
                                     <div class="input-group">
+                                        <span class="currency-symbol">$</span>
+                         <input type="number" 
+                             id="amount" 
+                             name="amount" 
+                             class="form-control" 
+                             placeholder="0.00"
+                             th:value="${expense != null ? expense.amount : ''}"
+                             step="0.01"
+                             min="0"
+                             required
+                             autocomplete="off">
                                         <div class="input-icon">
                                             <i class="fas fa-dollar-sign"></i>
                                         </div>
-                                        <input type="number" 
-                                               id="amount" 
-                                               name="amount" 
-                                               placeholder="0.00"
-                                               th:value="${expense?.amount}"
-                                               class="form-control" 
-                                               step="0.01"
-                                               min="0"
-                                               required>
+                                    </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-info-circle"></i>
+                                        Enter the amount spent
+                                    </div>
+                                </div>
+                                
+                                <!-- Quick Amount Buttons -->
+                                <div class="quick-amounts">
+                                    <label class="quick-amounts-label">
+                                        <i class="fas fa-bolt"></i>
+                                        Quick Amounts
+                                    </label>
+                                    <div class="quick-amount-buttons">
+                                        <button type="button" class="quick-amount-btn" data-amount="5">$5</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="10">$10</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="25">$25</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="50">$50</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="100">$100</button>
                                     </div>
                                 </div>
                                 
                                 <!-- Category Field -->
                                 <div class="form-group">
-                                    <label for="category">Category</label>
+                                    <label for="category" class="form-label">
+                                        <i class="fas fa-tags"></i>
+                                        Category
+                                    </label>
                                     <div class="input-group">
-                                        <div class="input-icon">
-                                            <i class="fas fa-tag"></i>
-                                        </div>
-                                        <select id="category" name="category" class="form-control" required>
+                                        <select id="category" name="category" class="form-select" required>
                                             <option value="">Select a category</option>
-                                            <option value="FOOD" th:selected="${expense?.category?.name() == 'FOOD'}">🍔 Food & Dining</option>
-                                            <option value="TRANSPORTATION" th:selected="${expense?.category?.name() == 'TRANSPORTATION'}">🚗 Transportation</option>
-                                            <option value="ENTERTAINMENT" th:selected="${expense?.category?.name() == 'ENTERTAINMENT'}">🎬 Entertainment</option>
-                                            <option value="UTILITIES" th:selected="${expense?.category?.name() == 'UTILITIES'}">⚡ Utilities</option>
-                                            <option value="HEALTHCARE" th:selected="${expense?.category?.name() == 'HEALTHCARE'}">🏥 Healthcare</option>
-                                            <option value="OTHER" th:selected="${expense?.category?.name() == 'OTHER'}">📦 Other</option>
+                                            <option value="FOOD" th:selected="${expense != null and expense.category == 'FOOD'}">Food</option>
+                                            <option value="TRANSPORTATION" th:selected="${expense != null and expense.category == 'TRANSPORTATION'}">Transportation</option>
+                                            <option value="UTILITIES" th:selected="${expense != null and expense.category == 'UTILITIES'}">Utilities</option>
+                                            <option value="ENTERTAINMENT" th:selected="${expense != null and expense.category == 'ENTERTAINMENT'}">Entertainment</option>
+                                            <option value="HEALTHCARE" th:selected="${expense != null and expense.category == 'HEALTHCARE'}">Healthcare</option>
+                                            <option value="OTHER" th:selected="${expense != null and expense.category == 'OTHER'}">Other</option>
                                         </select>
+                                        <div class="input-icon">
+                                            <i class="fas fa-tags"></i>
+                                        </div>
                                     </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-filter"></i>
+                                        Choose the most appropriate category
                                 </div>
                             </div>
                             
-                            <!-- Right Column -->
-                            <div class="form-column">
                                 <!-- Date Field -->
                                 <div class="form-group">
-                                    <label for="createdAt">Date</label>
+                                    <label for="createdAt" class="form-label">
+                                        <i class="fas fa-calendar"></i>
+                                        Date
+                                    </label>
                                     <div class="input-group">
+                         <input type="text" 
+                             id="createdAt" 
+                             name="createdAt" 
+                             class="form-control" 
+                             placeholder="YYYY-MM-DDTHH:mm:ss"
+                             th:value="${expense != null ? #temporals.format(expense.createdAt, 'yyyy-MM-dd''T''HH:mm:ss') : ''}"
+                             required>
                                         <div class="input-icon">
                                             <i class="fas fa-calendar"></i>
-                                        </div>
-                                        <input type="date" 
-                                               id="createdAt" 
-                                               name="createdAt" 
-                                               th:value="${expense?.createdAt != null ? #temporals.format(expense.createdAt, 'yyyy-MM-dd') : #temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
-                                               class="form-control" 
-                                               required>
-                                    </div>
-                                    <small class="form-text">When did this expense occur?</small>
                                 </div>
-                                
-                                <!-- Additional Notes field removed as requested -->
-                                
-                                <!-- Quick Amount Buttons -->
-                                <div class="form-group">
-                                    <label>Quick Amount Selection</label>
-                                    <div class="quick-amounts">
-                                        <button type="button" class="quick-amount-btn" onclick="setAmount(5)">$5</button>
-                                        <button type="button" class="quick-amount-btn" onclick="setAmount(10)">$10</button>
-                                        <button type="button" class="quick-amount-btn" onclick="setAmount(20)">$20</button>
-                                        <button type="button" class="quick-amount-btn" onclick="setAmount(50)">$50</button>
-                                        <button type="button" class="quick-amount-btn" onclick="setAmount(100)">$100</button>
                                     </div>
-                                </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-clock"></i>
+                                        When did this expense occur?
                             </div>
                         </div>
                         
                         <!-- Form Actions -->
                         <div class="form-actions">
-                            <div class="action-buttons">
-                                <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                                    <i class="fas fa-undo"></i>
-                                    Reset Form
+                                    <button type="button" class="btn btn-secondary" onclick="goBack()">
+                                        <i class="fas fa-arrow-left"></i>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" id="submitBtn" class="btn btn-primary btn-lg">
+                                        <span class="btn-text">
+                                            <i class="fas fa-save"></i>
+                                            Save Expense
+                                        </span>
+                                        <span class="btn-loading" style="display: none;">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            Saving...
+                                        </span>
                                 </button>
-                                
-                                <div th:replace="~{fragments/forms :: loading-button(
-                                    text=${expense != null && expense.id != null ? 'Update Expense' : 'Add Expense'}, 
-                                    loadingText='Saving...'
-                                )}"></div>
                             </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
                 </div>
                 
-                <!-- Expense Preview Card -->
-                <div class="preview-section">
+                <!-- Preview Card -->
+                <div class="preview-card">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">
                                 <i class="fas fa-eye"></i>
-                                Expense Preview
+                                Live Preview
                             </h3>
                         </div>
                         <div class="card-body">
                             <div id="expensePreview" class="expense-preview">
-                                <div class="preview-item">
-                                    <span class="preview-label">Description:</span>
-                                    <span id="previewDescription" class="preview-value">-</span>
+                                <div class="preview-placeholder">
+                                    <div class="preview-icon">
+                                        <i class="fas fa-receipt"></i>
                                 </div>
-                                <div class="preview-item">
-                                    <span class="preview-label">Amount:</span>
-                                    <span id="previewAmount" class="preview-value">$0.00</span>
-                                </div>
-                                <div class="preview-item">
-                                    <span class="preview-label">Category:</span>
-                                    <span id="previewCategory" class="preview-value">-</span>
-                                </div>
-                                <div class="preview-item">
-                                    <span class="preview-label">Date:</span>
-                                    <span id="previewDate" class="preview-value">-</span>
-                                </div>
-                                <div class="preview-item" id="previewNotesContainer" style="display: none;">
-                                    <span class="preview-label">Notes:</span>
-                                    <span id="previewNotes" class="preview-value">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Recent Expenses Card -->
-                    <div class="card" th:if="${recentExpenses != null && !recentExpenses.empty}">
-                        <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-history"></i>
-                                Recent Expenses
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="recent-list">
-                                <div th:each="recent : ${recentExpenses}" class="recent-item">
-                                    <div class="recent-info">
-                                        <div class="recent-desc" th:text="${recent.description}">Description</div>
-                                        <div class="recent-meta">
-                                            <span th:text="${recent.category}">Category</span>
-                                            <span th:text="${#temporals.format(recent.createdAt, 'MMM dd')}">Date</span>
-                                        </div>
+                                    <div class="preview-text">
+                                        <h4>Expense Preview</h4>
+                                        <p>Fill in the form to see a live preview of your expense</p>
                                     </div>
-                                    <div class="recent-amount" th:text="'$' + ${#numbers.formatDecimal(recent.amount, 1, 2)}">$0.00</div>
                                 </div>
                             </div>
                         </div>
@@ -207,364 +204,769 @@
         </div>
     </main>
     
-    <!-- Include Form Styles -->
-    <div th:replace="~{fragments/forms :: form-styles}"></div>
-    
-    <!-- Add Expense Specific Styles -->
+    <!-- Premium Styles for Add Expense Page -->
     <style>
-        .page-header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 2rem;
-            margin-bottom: 2rem;
+        /* Local overrides to ensure form controls are visible on dark backgrounds
+           Use the project's text color variable so dropdowns work correctly
+           across light/dark themes (avoid forcing pure white which can be
+           invisible on light backgrounds). */
+        .input-group .form-control {
+            color: var(--text-primary) !important;
+            background: rgba(255,255,255,0.03) !important;
+            min-height: 50px !important;
+            display: block !important;
+            padding-left: 50px !important;
+            padding-right: 18px !important;
+            box-sizing: border-box !important;
+        }
+
+        .input-group .form-control::placeholder {
+            color: rgba(255,255,255,0.6) !important;
+            opacity: 1 !important;
+        }
+
+        /* Ensure label and icons sit above inputs when using floating labels */
+        .form-label { z-index: 6; position: relative; }
+        .input-icon { z-index: 7; }
+
+        .page-header {
+            margin-bottom: var(--spacing-2xl);
+            text-align: center;
+            position: relative;
         }
         
-        .page-title-section {
-            flex: 1;
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--royal-blue-500), 
+                var(--royal-gold), 
+                var(--royal-blue-500), 
+                transparent);
+            border-radius: 2px;
         }
         
         .page-title {
-            font-size: 2.5rem;
-            color: var(--light-green);
-            margin-bottom: 0.5rem;
+            font-size: var(--font-size-4xl);
+            color: var(--royal-blue-300);
+            margin-bottom: var(--spacing-sm);
             display: flex;
             align-items: center;
-            gap: 1rem;
+            justify-content: center;
+            gap: var(--spacing-md);
+            text-shadow: 0 2px 4px rgba(30, 58, 138, 0.3);
         }
         
         .page-subtitle {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: var(--font-size-lg);
             margin: 0;
+            font-weight: 400;
         }
         
-        .page-actions {
-            flex-shrink: 0;
-        }
-        
-        .form-section {
+        .form-layout {
             display: grid;
             grid-template-columns: 2fr 1fr;
-            gap: 2rem;
-            align-items: start;
+            gap: var(--spacing-2xl);
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
-        .form-container {
-            background: var(--medium-grey);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 8px 25px var(--shadow);
-            border: 1px solid var(--border-grey);
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .form-column {
+        .form-label {
             display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        .form-text {
-            font-size: 0.875rem;
+        .form-label i {
+            color: var(--royal-blue-400);
+            width: 16px;
+        }
+        
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group .form-control {
+            padding-right: 50px;
+            padding-left: 50px;
+            height: 56px;
+            font-size: var(--font-size-lg);
+            border-radius: var(--border-radius-lg);
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            transition: var(--transition);
+        }
+        
+        .input-group .form-control:focus {
+            border-color: var(--royal-blue-500);
+            box-shadow: 
+                0 0 0 4px rgba(59, 130, 246, 0.2),
+                0 8px 24px rgba(30, 58, 138, 0.15);
+            background: rgba(15, 23, 42, 0.95);
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            color: var(--royal-blue-400);
+            font-size: var(--font-size-lg);
+            z-index: 2;
+            transition: var(--transition);
+        }
+        
+        .input-group .form-control:focus + .input-icon {
+            color: var(--royal-blue-300);
+            transform: scale(1.1);
+        }
+        
+        .currency-symbol {
+            position: absolute;
+            left: 18px;
+            color: var(--royal-blue-400);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .input-group .form-control[type="number"] {
+            padding-left: 40px;
+        }
+        
+        .form-select {
+            height: 56px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            padding-left: 50px;
+            border: 2px solid rgba(59, 130, 246, 0.18);
+            border-radius: var(--border-radius-lg);
+            /* use a subtle translucent background so the select blends with other inputs */
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(15,23,42,0.6));
+            color: var(--text-primary);
+            font-size: var(--font-size-lg);
+            transition: var(--transition);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+        }
+
+        /* Ensure dropdown option text is readable on native/light dropdown backgrounds.
+           Many browsers render the option list with a light background even in dark mode,
+           so force a dark text color for options for accessibility. */
+        .form-select option {
+            color: rgba(0,0,0,0.92) !important;
+            background: #ffffff !important;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--royal-blue-500);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+        
+        .form-help {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
             color: var(--text-secondary);
-            margin-top: 0.5rem;
+            font-size: var(--font-size-sm);
+            font-style: italic;
+        }
+        
+        .form-help i {
+            color: var(--royal-gold);
         }
         
         .quick-amounts {
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg);
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.03), 
+                rgba(30, 58, 138, 0.01));
+            border-radius: var(--border-radius-lg);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .quick-amounts-label {
             display: flex;
-            gap: 0.5rem;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .quick-amounts-label i {
+            color: var(--royal-gold);
+        }
+        
+        .quick-amount-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
             flex-wrap: wrap;
         }
         
         .quick-amount-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid var(--border-grey);
-            background: var(--light-grey);
-            color: var(--text-primary);
-            border-radius: 6px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: var(--border-radius-md);
+            color: var(--royal-blue-400);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
-            font-weight: 500;
         }
         
         .quick-amount-btn:hover {
-            border-color: var(--light-green);
-            background: var(--light-green);
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--royal-blue-500);
+            transform: translateY(-2px);
+        }
+        
+        .quick-amount-btn.active {
+            background: linear-gradient(135deg, 
+                var(--royal-blue-600), 
+                var(--royal-blue-700));
             color: white;
+            border-color: var(--royal-blue-600);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
         }
         
         .form-actions {
-            border-top: 2px solid var(--border-grey);
-            padding-top: 2rem;
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+            margin-top: var(--spacing-2xl);
+            padding-top: var(--spacing-xl);
+            border-top: 2px solid rgba(59, 130, 246, 0.3);
         }
         
-        .action-buttons {
+        .btn {
+            height: 56px;
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: var(--border-radius-lg);
+            position: relative;
+            overflow: hidden;
             display: flex;
-            gap: 1rem;
-            justify-content: space-between;
+            align-items: center;
+            gap: var(--spacing-sm);
         }
         
-        .preview-section {
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-loading {
             display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+            align-items: center;
+            gap: var(--spacing-sm);
         }
         
         .expense-preview {
+            min-height: 300px;
             display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .preview-item {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border-grey);
+            justify-content: center;
         }
         
-        .preview-item:last-child {
-            border-bottom: none;
-        }
-        
-        .preview-label {
-            font-weight: 600;
+        .preview-placeholder {
+            text-align: center;
             color: var(--text-secondary);
         }
         
-        .preview-value {
-            font-weight: 500;
-            color: var(--text-primary);
-            text-align: right;
-        }
-        
-        .recent-list {
+        .preview-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, 
+                var(--royal-blue-600), 
+                var(--royal-gold));
+            border-radius: 50%;
             display: flex;
-            flex-direction: column;
-            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            box-shadow: 
+                0 8px 32px rgba(30, 58, 138, 0.3),
+                0 4px 16px rgba(30, 58, 138, 0.2);
         }
         
-        .recent-item {
+        .preview-icon i {
+            font-size: var(--font-size-3xl);
+            color: white;
+        }
+        
+        .preview-text h4 {
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-xl);
+        }
+        
+        .preview-text p {
+            color: var(--text-secondary);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+        }
+        
+        .preview-expense {
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.05), 
+                rgba(30, 58, 138, 0.02));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+    .preview-expense::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, 
+        var(--royal-blue-500), 
+        var(--royal-gold));
+    }
+        
+        .preview-header {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .preview-category {
+            display: flex;
             align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border-grey);
+            gap: var(--spacing-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--royal-blue-300);
         }
         
-        .recent-item:last-child {
-            border-bottom: none;
+        .preview-amount {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--royal-blue-400);
+            text-shadow: 0 2px 4px rgba(30, 58, 138, 0.3);
         }
         
-        .recent-info {
-            flex: 1;
-        }
-        
-        .recent-desc {
+        .preview-description {
+            font-size: var(--font-size-lg);
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 0.25rem;
+            margin-bottom: var(--spacing-sm);
+            line-height: 1.4;
         }
         
-        .recent-meta {
+        .preview-date {
             display: flex;
-            gap: 1rem;
-            font-size: 0.875rem;
+            align-items: center;
+            gap: var(--spacing-sm);
             color: var(--text-secondary);
-        }
-        
-        .recent-amount {
-            font-weight: 600;
-            color: var(--light-green);
+            font-size: var(--font-size-sm);
         }
         
         /* Responsive Design */
-        @media (max-width: 1024px) {
-            .form-section {
-                grid-template-columns: 1fr;
-                gap: 2rem;
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: var(--font-size-3xl);
+                flex-direction: column;
+                gap: var(--spacing-sm);
             }
             
-            .form-grid {
+            .form-layout {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
+                gap: var(--spacing-xl);
         }
         
-        @media (max-width: 768px) {
-            .page-header-content {
+            .form-actions {
                 flex-direction: column;
-                gap: 1rem;
             }
             
-            .page-title {
-                font-size: 2rem;
-            }
-            
-            .page-actions {
-                align-self: stretch;
-            }
-            
-            .page-actions .btn {
-                width: 100%;
-            }
-            
-            .form-container {
-                padding: 1.5rem;
-            }
-            
-            .action-buttons {
-                flex-direction: column-reverse;
-            }
-            
-            .action-buttons .btn {
-                width: 100%;
-            }
-            
-            .quick-amounts {
+            .quick-amount-buttons {
                 justify-content: center;
             }
         }
         
         @media (max-width: 480px) {
+            .page-header {
+                margin-bottom: var(--spacing-xl);
+            }
+            
             .page-title {
-                font-size: 1.8rem;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
+                font-size: var(--font-size-2xl);
             }
             
-            .form-container {
-                padding: 1rem;
+            .page-subtitle {
+                font-size: var(--font-size-base);
             }
             
-            .quick-amount-btn {
-                flex: 1;
-                min-width: 60px;
+            .input-group .form-control {
+                height: 50px;
+                font-size: var(--font-size-base);
+            }
+            
+            .form-select {
+                height: 50px;
+                font-size: var(--font-size-base);
+            }
+            
+            .btn {
+                height: 50px;
+                font-size: var(--font-size-base);
+            }
+            
+            .preview-icon {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .preview-icon i {
+                font-size: var(--font-size-2xl);
             }
         }
     </style>
     
     <!-- JavaScript -->
     <script th:src="@{/js/app.js}"></script>
-    <script th:src="@{/js/expense.js}"></script>
+    <script th:src="@{/js/auth.js}"></script>
     <script>
-        // Initialize add expense page
-        document.addEventListener('DOMContentLoaded', function() {
-            setupFormPreview();
-            setupQuickAmounts();
-            
-            // Focus on description field
-            document.getElementById('description').focus();
-        });
-        
-        function setupFormPreview() {
-            try {
-                console.log('Setting up form preview...');
-                const form = document.getElementById('expenseForm');
-                if (!form) {
-                    console.warn('Expense form not found for preview setup');
+
+        function ensureFlatpickrLoaded() {
+            // Load CSS if missing
+            if (!document.querySelector('link[href*="flatpickr"]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+                document.head.appendChild(link);
+            }
+
+            // If already available, resolve immediately
+            if (typeof flatpickr === 'function') {
+                return Promise.resolve();
+            }
+            return new Promise((resolve, reject) => {
+                // Avoid adding duplicate script tags
+                if (document.querySelector('script[src="https://cdn.jsdelivr.net/npm/flatpickr"]')) {
+                    // Wait briefly for the script to initialize
+                    const waitStart = Date.now();
+                    const interval = setInterval(() => {
+                        if (typeof flatpickr === 'function') {
+                            clearInterval(interval);
+                            resolve();
+                        } else if (Date.now() - waitStart > 5000) {
+                            clearInterval(interval);
+                            reject(new Error('flatpickr did not initialize in time'));
+                        }
+                    }, 50);
                     return;
                 }
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
+                s.async = true;
+                s.onload = () => {
+                    // small delay to ensure lib is available
+                    setTimeout(() => {
+                        if (typeof flatpickr === 'function') resolve();
+                        else reject(new Error('flatpickr loaded but not available'));
+                    }, 10);
+                };
+                s.onerror = () => reject(new Error('Failed to load flatpickr script'));
+                document.head.appendChild(s);
+            });
+        }
+
+            
+        // Initialize add expense page when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Flatpickr for date/time picker
+            const createdAtInput = document.getElementById('createdAt');
+            if (createdAtInput) {
+                ensureFlatpickrLoaded()
+                    .then(() => {
+                        try {
+                            flatpickr(createdAtInput, {
+                                enableTime: true,
+                                // use ISO-like format that matches backend expectation
+                                dateFormat: "Y-m-d\\TH:i:S",
+                                time_24hr: true,
+                                allowInput: false,
+                                defaultDate: createdAtInput.value && createdAtInput.value.length ? createdAtInput.value : new Date(),
+                                minDate: "2020-01-01",
+                                maxDate: "2030-12-31"
+                            });
+                        } catch (e) {
+                            console.error('flatpickr init error:', e);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Could not load flatpickr:', err);
+                        // Fallback: allow manual typing but warn user
+                        createdAtInput.removeAttribute('readonly');
+                    });
+            }
+            
+            // Add entrance animations
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
                 
-                const inputs = form.querySelectorAll('input, select, textarea');
-                console.log(`Found ${inputs.length} input elements:`, Array.from(inputs).map(el => el.id || el.name));
-                
-                inputs.forEach(input => {
-                    console.log(`Attaching listeners to ${input.id || input.name}`);
-                    input.addEventListener('input', updatePreview);
-                    input.addEventListener('change', updatePreview);
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+            
+            // Initialize form interactions
+            initializeFormInteractions();
+        });
+        
+        function initializeFormInteractions() {
+                const form = document.getElementById('expenseForm');
+            const descriptionInput = document.getElementById('description');
+            const amountInput = document.getElementById('amount');
+            const categorySelect = document.getElementById('category');
+            const dateInput = document.getElementById('createdAt');
+            const quickAmountBtns = document.querySelectorAll('.quick-amount-btn');
+            
+            // Quick amount buttons
+            quickAmountBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const amount = this.dataset.amount;
+                    if (amountInput) amountInput.value = amount;
+
+                    // Update active state
+                    quickAmountBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Update preview
+                    updatePreview();
                 });
-                
-                // Initial preview update
-                updatePreview();
-                console.log('Form preview setup complete');
-            } catch (error) {
-                console.error('Error setting up form preview:', error);
+            });
+
+            // Form inputs for live preview (guard nulls)
+            [descriptionInput, amountInput, categorySelect, dateInput].forEach(input => {
+                if (!input) return;
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('change', updatePreview);
+            });
+
+            // Amount input formatting
+            if (amountInput) {
+                amountInput.addEventListener('input', function() {
+                    // Remove active state from quick amount buttons when manually typing
+                    quickAmountBtns.forEach(btn => btn.classList.remove('active'));
+                });
             }
         }
         
         function updatePreview() {
-            try {
-                console.log('updatePreview called');
-                const description = document.getElementById('description')?.value || '-';
-                const amount = document.getElementById('amount')?.value;
-                const category = document.getElementById('category');
-                const categoryText = category ? category.options[category.selectedIndex]?.text : '-';
-                const date = document.getElementById('createdAt')?.value;
-                
-                console.log('Values:', { description, amount, categoryText, date });
-                
-                const previewDescription = document.getElementById('previewDescription');
-                const previewAmount = document.getElementById('previewAmount');
-                const previewCategory = document.getElementById('previewCategory');
-                const previewDate = document.getElementById('previewDate');
-                
-                console.log('Preview elements found:', {
-                    previewDescription: !!previewDescription,
-                    previewAmount: !!previewAmount,
-                    previewCategory: !!previewCategory,
-                    previewDate: !!previewDate
-                });
-                
-                if (previewDescription) previewDescription.textContent = description;
-                if (previewAmount) previewAmount.textContent = amount ? `$${parseFloat(amount).toFixed(2)}` : '$0.00';
-                if (previewCategory) previewCategory.textContent = categoryText;
-                if (previewDate) previewDate.textContent = date ? new Date(date).toLocaleDateString() : '-';
-                
-                // Hide notes container since notes field was removed
-                const notesContainer = document.getElementById('previewNotesContainer');
-                if (notesContainer) {
-                    notesContainer.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Error updating preview:', error);
+            const descEl = document.getElementById('description');
+            const amtEl = document.getElementById('amount');
+            const catEl = document.getElementById('category');
+            const dateEl = document.getElementById('createdAt');
+
+            const description = descEl ? descEl.value : '';
+            const amount = amtEl ? amtEl.value : '';
+            const category = catEl ? catEl.value : '';
+            const date = dateEl ? dateEl.value : '';
+
+            const previewContainer = document.getElementById('expensePreview');
+            if (!previewContainer) return;
+
+            if (description || amount || category || date) {
+                const categoryText = getCategoryText(category);
+                const formattedDate = formatDate(date);
+                const parsedAmount = parseFloat(amount);
+                const formattedAmount = !isNaN(parsedAmount) ? `$${parsedAmount.toFixed(2)}` : '$0.00';
+
+                previewContainer.innerHTML = `
+                    <div class="preview-expense">
+                        <div class="preview-header">
+                            <div class="preview-category">
+                                <i class="fas fa-tag"></i>
+                                ${categoryText || 'Category'}
+                            </div>
+                            <div class="preview-amount">${formattedAmount}</div>
+                        </div>
+                        <div class="preview-description">${description || 'Description'}</div>
+                        <div class="preview-date">
+                            <i class="fas fa-calendar"></i>
+                            ${formattedDate || 'Date'}
+                        </div>
+                    </div>
+                `;
+            } else {
+                previewContainer.innerHTML = `
+                    <div class="preview-placeholder">
+                        <div class="preview-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="preview-text">
+                            <h4>Expense Preview</h4>
+                            <p>Fill in the form to see a live preview of your expense</p>
+                        </div>
+                    </div>
+                `;
             }
         }
         
-        function setupQuickAmounts() {
-            const amountInput = document.getElementById('amount');
-            const quickButtons = document.querySelectorAll('.quick-amount-btn');
-            
-            quickButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const amount = this.textContent.replace('$', '');
-                    amountInput.value = amount;
-                    amountInput.focus();
-                    updatePreview();
-                    
-                    // Visual feedback
-                    this.style.background = 'var(--light-green)';
-                    this.style.color = 'white';
-                    setTimeout(() => {
-                        this.style.background = '';
-                        this.style.color = '';
-                    }, 200);
-                });
+        function getCategoryText(category) {
+            const categories = {
+                'FOOD': 'Food',
+                'TRANSPORTATION': 'Transportation',
+                'UTILITIES': 'Utilities',
+                'ENTERTAINMENT': 'Entertainment',
+                'HEALTHCARE': 'Healthcare',
+                'OTHER': 'Other'
+            };
+            return categories[category] || '';
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
             });
         }
         
-        function setAmount(amount) {
-            document.getElementById('amount').value = amount;
-            document.getElementById('amount').focus();
-            updatePreview();
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoading = submitBtn.querySelector('.btn-loading');
+            
+            // Show loading state
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'flex';
+            submitBtn.disabled = true;
+            
+            // Get form data
+            const formData = new FormData(event.target);
+            const expenseData = {
+                description: formData.get('description'),
+                amount: parseFloat(formData.get('amount')),
+                category: formData.get('category'),
+                createdAt: formData.get('createdAt')
+            };
+            
+            // Determine if we're editing an existing expense
+            const expenseId = formData.get('id');
+            const isEdit = expenseId && expenseId !== '';
+            const url = isEdit ? `/api/expense/update/${expenseId}` : '/api/expense/add';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            // Submit to backend using central apiFetch (ensures credentials and CSRF if needed)
+            (async () => {
+                const headers = { 'Content-Type': 'application/json' };
+                try {
+                    const storedToken = localStorage.getItem('authToken');
+                    if (storedToken) headers['Authorization'] = 'Bearer ' + storedToken;
+                } catch (e) { /* ignore storage errors */ }
+
+                try {
+                    const res = await apiFetch(url, {
+                        method: method,
+                        headers,
+                        body: JSON.stringify(expenseData)
+                    });
+
+                    if (!res.ok) {
+                        const text = await res.text().catch(() => null);
+                        console.error('Add/Update expense failed', { status: res.status, body: text });
+                        showAlert('Failed to add expense. Please try again.', 'danger');
+                        return;
+                    }
+
+                    // Some endpoints return JSON, others plain text. Attempt to parse JSON.
+                    let data = null;
+                    try { data = await res.json(); } catch (e) { data = null; }
+
+                    showAlert(isEdit ? 'Expense updated successfully!' : 'Expense added successfully!', 'success');
+                    event.target.reset();
+                    updatePreview();
+                    document.querySelectorAll('.quick-amount-btn').forEach(btn => btn.classList.remove('active'));
+
+                    setTimeout(() => { window.location.href = '/expenses'; }, 1200);
+                } catch (err) {
+                    console.error('Error submitting expense:', err);
+                    showAlert('Failed to add expense. Please check your connection and try again.', 'danger');
+                } finally {
+                    // Reset button state
+                    btnText.style.display = 'flex';
+                    btnLoading.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+            })();
         }
         
-        function resetForm() {
-            if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
-                document.getElementById('expenseForm').reset();
-                // Set date to today
-                document.getElementById('createdAt').value = new Date().toISOString().split('T')[0];
-                updatePreview();
-                document.getElementById('description').focus();
+        function goBack() {
+            window.history.back();
+        }
+        
+        function showAlert(message, type) {
+            // Use global AlertUtils instead of trying to append to non-existent alertContainer
+            if (typeof AlertUtils !== 'undefined') {
+                AlertUtils.show(message, type);
+            } else {
+                console.log(`${type}: ${message}`);
             }
         }
     </script>
